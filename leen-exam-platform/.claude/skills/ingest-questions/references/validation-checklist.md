@@ -16,7 +16,7 @@ node .claude/skills/ingest-questions/scripts/validate-ingestion.mjs \
   [--assets-dir public/questions/<exam-id>/<section-id>/<test-n>]
 ```
 
-Run from the `GAT app/` project root (where `package.json`/`node_modules`
+Run from the `leen-exam-platform/` project root (where `package.json`/`node_modules`
 live — the script imports the already-installed `katex` package to
 actually parse generated math strings, not a hand-rolled check).
 

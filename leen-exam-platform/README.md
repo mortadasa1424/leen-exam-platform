@@ -36,7 +36,7 @@ Requires Node.js (any version compatible with Vite 5 / modern npm).
 ## Project structure
 
 ```
-GAT app/
+leen-exam-platform/
 ├── index.html                # entry HTML; loads /lead-config.js then main.jsx
 ├── src/
 │   ├── main.jsx               # React root

@@ -1,9 +1,9 @@
 {
-  "name": "leen-gat-app",
+  "name": "leen-exam-platform",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Leen GAT Practice App — Quantitative & Verbal practice tests, built from the Leen ITC platform foundation.",
+  "description": "Leen exam practice platform — GAT is the first exam module; see docs/PLATFORM.md.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -1,4 +1,4 @@
-// Curated re-export of the lucide-react icons used across the GAT UI, so
+// Curated re-export of the lucide-react icons used across the platform UI, so
 // every call site imports from one place instead of picking icons ad hoc.
 export {
   Home,

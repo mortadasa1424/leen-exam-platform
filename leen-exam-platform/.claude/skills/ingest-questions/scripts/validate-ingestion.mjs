@@ -6,7 +6,7 @@
 //
 // Zero new dependencies: uses only Node builtins plus the `katex` package
 // already installed in this project's node_modules (see package.json) --
-// run this from the project root (GAT app/) so that resolves.
+// run this from the project root (leen-exam-platform/) so that resolves.
 //
 // Usage:
 //   node validate-ingestion.mjs --file <path> [--passages <path> ...]
@@ -177,7 +177,7 @@ async function main() {
     const req = await import("node:module").then((m) => m.createRequire(import.meta.url));
     katex = req("katex");
   } catch {
-    warnings.push({ type: "katex-not-available", message: "katex package not found in node_modules -- run this script from the project root (GAT app/); math strings were NOT validated" });
+    warnings.push({ type: "katex-not-available", message: "katex package not found in node_modules -- run this script from the project root (leen-exam-platform/); math strings were NOT validated" });
   }
   if (katex) {
     questions.forEach((q, i) => {

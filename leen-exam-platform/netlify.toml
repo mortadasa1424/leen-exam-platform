@@ -1,4 +1,4 @@
-# Netlify build configuration — Leen GAT Practice App
+# Netlify build configuration — Leen Exam Platform
 # Deploy from source: Netlify runs `npm install && npm run build` and publishes dist/.
 
 [build]

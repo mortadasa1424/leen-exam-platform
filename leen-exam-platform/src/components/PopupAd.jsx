@@ -5,7 +5,7 @@ import activeExam from "../exams/active.js";
 import { t } from "../i18n/index.js";
 import { X } from "./icons.jsx";
 
-// Video-only promo popup: the card is nothing but the GAT promo video.
+// Video-only promo popup: the card is nothing but the active exam's promo video.
 // Clicking anywhere on it opens the course link; the circular X only closes
 // the popup. The card has no fixed aspect-ratio of its own — it shrink-wraps
 // whatever the <video> renders at (see .ad-pop-card.open-ad/.finish-ad in

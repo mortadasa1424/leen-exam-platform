@@ -173,7 +173,7 @@ Without modifying `active.js` permanently:
    - If `performance.byCategory` is `true`, `categories.js` exists and
      `exam.config.js` references it; if `false`, confirm no `categories`
      key exists and no `categories.js` file was created.
-3. Run `npm run build` (from the `GAT app` directory) if the exam was
+3. Run `npm run build` (from the `leen-exam-platform` directory) if the exam was
    temporarily activated for validation, and report the result.
 4. Report any validation failures plainly; don't paper over them.
 

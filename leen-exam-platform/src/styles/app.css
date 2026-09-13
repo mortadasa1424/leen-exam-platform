@@ -711,7 +711,7 @@ body.light .modal p.modal-comment{color:#6b6585}
 @keyframes figIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
 .q-figure .q-prompt,.q-figure .q-stacked{text-align:center;width:100%}
 
-/* image/diagram questions (extracted asset, GAT) */
+/* image/diagram questions (extracted asset) */
 .q-image-wrap{width:100%;max-width:280px;display:flex;justify-content:center}
 .q-diagram-img{width:auto;max-width:100%;height:auto;max-height:34vh;filter:drop-shadow(0 6px 16px rgba(0,30,60,.15));animation:figIn .5s var(--ease-back) both}
 
@@ -4272,7 +4272,7 @@ body:not(.light) .home-icon-btn:hover{
   z-index:-1!important;
 }
 
-/* GAT footer promo banner (gat-course-banner2.png is 1750x386, not the 5:1
+/* Active exam's footer promo banner (GAT's gat-course-banner2.png is 1750x386, not the 5:1
    ratio the rules above assume) — use the asset's real ratio + object-fit:
    contain so it's always shown whole, never stretched or cropped. */
 .footer-ad-banner{
