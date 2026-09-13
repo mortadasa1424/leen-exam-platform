@@ -71,8 +71,9 @@ loaded and shaped, never edit question text/answers/categories directly in
 code.**
 
 Question images referenced by these datasets live under
-`public/questions/quantitative/test-N/...` — paths in the JSON are absolute
-(`/questions/...`) and resolved against `public/` at build time. The original
+`public/questions/gat/quantitative/test-N/...` — paths in the JSON are
+absolute (`/questions/...`) and resolved against `public/` at build time.
+The original
 `.docx` source documents used to author the datasets are kept in
 `tests-source/` for reference; they are not read by the app at runtime.
 

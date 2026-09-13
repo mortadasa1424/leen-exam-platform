@@ -16,7 +16,7 @@
         "text": ", find the area of the shaded part."
       }
     ],
-    "image": "/questions/quantitative/test-1/q01-shaded-circle-sectors.png",
+    "image": "/questions/gat/quantitative/test-1/q01-shaded-circle-sectors.png",
     "compareTable": null,
     "options": [
       {
@@ -63,7 +63,7 @@
         "text": "?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q02-shaded-square-quadrants.png",
+    "image": "/questions/gat/quantitative/test-1/q02-shaded-square-quadrants.png",
     "compareTable": null,
     "options": [
       {
@@ -247,7 +247,7 @@
         "text": "Compare: "
       }
     ],
-    "image": "/questions/quantitative/test-1/q06-triangles-abc-dbc.png",
+    "image": "/questions/gat/quantitative/test-1/q06-triangles-abc-dbc.png",
     "compareTable": {
       "columns": [
         "A",
@@ -378,7 +378,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-1/q08-overlapping-circles-ab.png",
+    "image": "/questions/gat/quantitative/test-1/q08-overlapping-circles-ab.png",
     "compareTable": null,
     "options": [
       {
@@ -674,7 +674,7 @@
         "text": "There are 6 cubes with a side length of 1cm in the opposite figure. Compare:"
       }
     ],
-    "image": "/questions/quantitative/test-1/q14-cube-with-small-cubes.png",
+    "image": "/questions/gat/quantitative/test-1/q14-cube-with-small-cubes.png",
     "compareTable": {
       "columns": [
         "A",
@@ -770,7 +770,7 @@
         "text": ". Find the area of the rectangle?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q15-rectangle-diagonal.png",
+    "image": "/questions/gat/quantitative/test-1/q15-rectangle-diagonal.png",
     "compareTable": null,
     "options": [
       {
@@ -860,7 +860,7 @@
         "text": " in the following parallelogram."
       }
     ],
-    "image": "/questions/quantitative/test-1/q17-parallelogram-angles.png",
+    "image": "/questions/gat/quantitative/test-1/q17-parallelogram-angles.png",
     "compareTable": null,
     "options": [
       {
@@ -1071,7 +1071,7 @@
         "text": "In the opposite figure, compare:"
       }
     ],
-    "image": "/questions/quantitative/test-1/q22-triangle-angles.png",
+    "image": "/questions/gat/quantitative/test-1/q22-triangle-angles.png",
     "compareTable": {
       "columns": [
         "A",
@@ -1135,7 +1135,7 @@
         "text": "Compare:"
       }
     ],
-    "image": "/questions/quantitative/test-1/q23-parallel-lines-angles.png",
+    "image": "/questions/gat/quantitative/test-1/q23-parallel-lines-angles.png",
     "compareTable": {
       "columns": [
         "A",
@@ -1556,7 +1556,7 @@
         "text": "The graph shows the sales of a clothing store. In which month did men’s clothing sales decrease compared with the previous month shown in the graph?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q30-bar-chart-clothing-sales.png",
+    "image": "/questions/gat/quantitative/test-1/q30-bar-chart-clothing-sales.png",
     "compareTable": null,
     "options": [
       {
@@ -1595,7 +1595,7 @@
         "text": "The figure shows the farm’s production over 7 years. The total production is 720 tons, and the production in the 3rd and 5th years is 80 tons altogether. By which year did the farm’s total production reach 440 tons?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q31-pie-chart-years.png",
+    "image": "/questions/gat/quantitative/test-1/q31-pie-chart-years.png",
     "compareTable": null,
     "options": [
       {
@@ -1634,7 +1634,7 @@
         "text": "Based on the figure below, what was the percentage decrease in industries from 2001 to 2003?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q32-data-table-expenses.png",
+    "image": "/questions/gat/quantitative/test-1/q32-data-table-expenses.png",
     "compareTable": null,
     "options": [
       {
@@ -1673,7 +1673,7 @@
         "text": "Which year range has car production closest to the production in 2001–2005?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q33-bar-chart-car-production.png",
+    "image": "/questions/gat/quantitative/test-1/q33-bar-chart-car-production.png",
     "compareTable": null,
     "options": [
       {
@@ -1712,7 +1712,7 @@
         "text": "If a company sold 1 million vehicles in total, how many trucks and 4×4s did it sell in the same year?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q34-pie-chart-vehicle-types.png",
+    "image": "/questions/gat/quantitative/test-1/q34-pie-chart-vehicle-types.png",
     "compareTable": null,
     "options": [
       {
@@ -1973,7 +1973,7 @@
         "text": "Which number, if added to the table, would change the range?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q39-number-grid.png",
+    "image": "/questions/gat/quantitative/test-1/q39-number-grid.png",
     "compareTable": null,
     "options": [
       {
@@ -2098,7 +2098,7 @@
         "text": "R?"
       }
     ],
-    "image": "/questions/quantitative/test-1/q42-polygon-angles.png",
+    "image": "/questions/gat/quantitative/test-1/q42-polygon-angles.png",
     "compareTable": null,
     "options": [
       {

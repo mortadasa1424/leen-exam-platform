@@ -22,7 +22,9 @@ src/
     brand.js            Leen company identity (logo, name) — constant across
                          every exam product; NOT per-exam
   exams/
-    active.js            <- the ONE file that says which exam is live
+    active.js            <- the ONE stable import path components use;
+                             selects an exam from registry.js via VITE_EXAM_ID
+    registry.js           <- every exam module this build knows about
     gat/
       exam.config.js      GAT's definition (sections, tests, timer,
                            marketing, lead capture, categories)
@@ -85,18 +87,121 @@ this (see `src/exams/gat/index.js` for the reference implementation):
 ```
 
 Components import this via `src/exams/active.js` — never a specific exam
-folder by name. That file is the single switch:
+folder, and never `src/exams/registry.js`, by name.
+
+## Exam registry
+
+`src/exams/active.js` is a **build-time selector**, not a manual switch: it
+reads `import.meta.env.VITE_EXAM_ID` (a Vite build-time env var — see
+[Vite's env docs](https://vitejs.dev/guide/env-and-mode.html)), looks that id
+up in `src/exams/registry.js`, and exports whichever exam module it finds.
+`registry.js` is a plain object mapping every exam id this build knows about
+to its module, via ordinary static imports:
 
 ```js
-// src/exams/active.js
-export { default } from "./gat/index.js";
+// src/exams/registry.js
+import gat from "./gat/index.js";
+
+const registry = {
+  gat,
+  // saat,
+  // step,
+};
+
+export default registry;
 ```
 
-## How GAT is registered
+```js
+// src/exams/active.js (selection logic; see the file for the full version)
+import registry from "./registry.js";
 
-`src/exams/gat/index.js` composes `exam.config.js` + `questions.js` +
-`categories.js` into the module above, and `src/exams/active.js` re-exports
-it. That's the whole registration — there's no separate exam registry/router.
+const examId = import.meta.env.VITE_EXAM_ID || "gat";
+const exam = registry[examId];
+
+if (!exam) {
+  throw new Error(`Unknown VITE_EXAM_ID "${examId}". Valid exam IDs: ${Object.keys(registry).join(", ")}.`);
+}
+
+export default exam;
+```
+
+**Static imports, not dynamic `import()`.** Every consumer (starting with
+`App.jsx`'s top-level `const { ... } = activeExam`) reads the active exam
+module synchronously at import time. This platform selects one exam per
+*build*, it never switches exams at runtime in a running browser tab, so
+there is nothing to gain from lazy-loading exam modules and doing so would
+force every consumer to handle a Promise for no benefit. If a future exam's
+dataset gets large enough that bundle size becomes a real problem, that's a
+deliberate follow-up (e.g. per-exam build entries), not something to
+retrofit into this selector casually.
+
+**Behavior:**
+- **`VITE_EXAM_ID` unset** (plain local `npm run dev`/`npm run build`, or any
+  deployment that hasn't set the variable) → defaults to `"gat"`. Existing
+  behavior/deployments are unaffected by this change.
+- **`VITE_EXAM_ID` set to a registered id** (e.g. `gat`, or a future `saat`/
+  `step` once registered) → that exam is active for the build.
+- **`VITE_EXAM_ID` set to an id *not* in `registry.js`** → `active.js` throws
+  immediately, with an error message listing the valid ids. It never
+  silently falls back to GAT — a typo in the env var must fail loudly, not
+  quietly ship the wrong exam.
+
+Because Vite is a client-side bundler, `npm run build` itself still succeeds
+even for an invalid id (bundling doesn't execute application code) — the
+thrown error fires the moment the built app actually loads in a browser
+(dev server or the built `dist/` output), which is where "clear failure"
+surfaces for a Vite SPA. There is no secret involved: `VITE_`-prefixed
+variables are always inlined into the public client bundle by Vite, by
+design, so never put anything sensitive in `VITE_EXAM_ID` or its neighbors.
+
+### Local development
+
+```
+# .env.local (gitignored) or inline:
+VITE_EXAM_ID=gat npm run dev      # bash/macOS/Linux
+$env:VITE_EXAM_ID="gat"; npm run dev   # PowerShell
+```
+
+Omit it entirely for the same result — `gat` is the default. See
+`.env.example` for the documented variable (copy it to `.env.local` to set a
+default without repeating it on every command).
+
+### Netlify deployment
+
+Each Netlify site for this repo (one per exam) sets its own **Build & deploy
+→ Environment variables**:
+
+```
+GAT site:   VITE_EXAM_ID=gat
+SAAT site:  VITE_EXAM_ID=saat
+STEP site:  VITE_EXAM_ID=step
+```
+
+All three sites can build from the same repo/branch — the only difference
+between their deployments is this one environment variable. This doc does
+not change any live Netlify site's settings; setting/updating them on
+Netlify is a deploy-time operation for whoever owns that site.
+
+### Adding a new exam to the registry
+
+Once `src/exams/<id>/` exists (via `/create-exam`) and implements the
+exam-module contract below, register it by adding one import + one line to
+`src/exams/registry.js`:
+
+```js
+import gat from "./gat/index.js";
+import saat from "./saat/index.js";   // new
+
+const registry = {
+  gat,
+  saat,                                // new
+};
+```
+
+Nothing else changes — `active.js`, `App.jsx`, and every component are
+untouched. Registering an exam does **not** make it active anywhere; a
+deployment only serves it once that deployment's own `VITE_EXAM_ID` is set
+to its id.
 
 ## Adding a future exam manually
 
@@ -121,8 +226,11 @@ it. That's the whole registration — there's no separate exam registry/router.
 4. Point brand-only assets (course promo video/banner, question images) under
    `public/` — a new exam should use its own `public/questions/<id>/...` and
    `public/assets/marketing/...` paths so they don't collide with GAT's.
-5. Change the one line in `src/exams/active.js` to point at the new exam's
-   `index.js`.
+5. Register it in `src/exams/registry.js` (see "Adding a new exam to the
+   registry" above). Do **not** edit `src/exams/active.js` — it needs no
+   per-exam changes — and do **not** change any deployment's `VITE_EXAM_ID`
+   as part of this step; that's a separate, deliberate deploy-time decision
+   for whichever site should start serving the new exam.
 6. `index.html`'s `<title>`/meta description/`theme-color` are static HTML
    with no build-time templating, but `App.jsx` overwrites them at startup
    from the active exam's `config.meta` (title/description/themeColor), the
@@ -205,6 +313,9 @@ that omits `performance` entirely is treated as `false`, not a crash.
 
 ## Where things live
 
+- **Which exam is active**: `VITE_EXAM_ID`, a build-time env var (see "Exam
+  registry" above) — never a hardcoded value in `active.js`, which contains
+  only the selection logic, not a per-exam switch.
 - **Questions**: `src/exams/<id>/data/`. Treat as read-only content —
   `questions.js` is the only place that shapes it (namespacing IDs,
   attaching `generalCategory`/`mathLayout`).

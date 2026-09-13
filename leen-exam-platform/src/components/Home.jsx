@@ -2,7 +2,7 @@ import { Sound } from "../lib/sound.js";
 import { LOGO_LIGHT, LOGO_DARK } from "../config/brand.js";
 import activeExam from "../exams/active.js";
 import { locale, t } from "../i18n/index.js";
-import { Home as HomeIcon, Sun, Moon, Volume2, VolumeX, ChevronRight, getSectionIcon } from "./icons.jsx";
+import { Home as HomeIcon, Sun, Moon, Volume2, VolumeX, ChevronRight, ChevronLeft, getSectionIcon } from "./icons.jsx";
 
 export function getLeenLogoSrc(dark) {
   if (typeof dark === "boolean") return dark ? LOGO_DARK : LOGO_LIGHT;
@@ -66,7 +66,7 @@ export function Header({ dark, onToggleDark, soundOn, onToggleSound, showHome = 
       </div>
       {showBack && (
         <button className="icon-btn return-top" onClick={() => { Sound.tap(); onBack?.(); }} aria-label={t("common.back")}>
-          <ChevronRight size={20} aria-hidden="true" />
+          {locale.direction === "rtl" ? <ChevronLeft size={20} aria-hidden="true" /> : <ChevronRight size={20} aria-hidden="true" />}
         </button>
       )}
     </header>

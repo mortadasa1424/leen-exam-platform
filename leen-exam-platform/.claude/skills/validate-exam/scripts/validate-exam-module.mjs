@@ -412,20 +412,14 @@ async function main() {
   }
 
   // ---------- image path scoping + existence ----------
-  const siblingIdSet = new Set(siblingIds);
+  // Every exam, GAT included, namespaces its question assets under
+  // /questions/<examId>/... (GAT's images were migrated off their old
+  // un-namespaced /questions/quantitative|verbal/ paths -- see
+  // references/question-schema.md's "Asset path convention"), so the same
+  // check applies uniformly; no GAT-specific carve-out needed any more.
   for (const imagePath of allImagePaths) {
-    if (examId === "gat") {
-      if (!/^\/questions\/(quantitative|verbal)\//.test(imagePath)) {
-        for (const sib of siblingIdSet) {
-          if (imagePath.startsWith(`/questions/${sib}/`)) {
-            blocker(blockers, "foreign-exam-asset-path", `image path "${imagePath}" looks like it belongs to exam "${sib}", not gat`);
-          }
-        }
-      }
-    } else {
-      if (!imagePath.startsWith(`/questions/${examId}/`)) {
-        blocker(blockers, "asset-path-not-namespaced", `image path "${imagePath}" does not start with "/questions/${examId}/" -- every non-GAT exam must namespace its asset paths`);
-      }
+    if (!imagePath.startsWith(`/questions/${examId}/`)) {
+      blocker(blockers, "asset-path-not-namespaced", `image path "${imagePath}" does not start with "/questions/${examId}/" -- every exam must namespace its asset paths`);
     }
     const resolvedImg = resolve(projectRoot, "public", imagePath.replace(/^\//, ""));
     if (!existsSync(resolvedImg)) blocker(blockers, "missing-image-file", `image path "${imagePath}" does not resolve to a file under public/`);
@@ -438,8 +432,8 @@ async function main() {
     if (!existsSync(resolved)) blocker(blockers, "missing-marketing-asset", `marketing.${field} "${val}" does not resolve to a file under public/`);
   }
 
-  // ---------- orphan question-asset scan (non-gat exams: public/questions/<examId>/) ----------
-  if (examId !== "gat") {
+  // ---------- orphan question-asset scan (public/questions/<examId>/) ----------
+  {
     const assetsDir = resolve(projectRoot, "public/questions", examId);
     if (existsSync(assetsDir)) {
       const referencedBasenames = new Set(allImagePaths.map((p) => p.split("/").pop()));

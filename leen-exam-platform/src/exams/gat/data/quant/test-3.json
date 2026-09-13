@@ -16,7 +16,7 @@
         "text": ", find the area of the rectangle."
       }
     ],
-    "image": "/questions/quantitative/test-3/q01-shaded-circle-rectangle.png",
+    "image": "/questions/gat/quantitative/test-3/q01-shaded-circle-rectangle.png",
     "compareTable": null,
     "options": [
       {
@@ -55,7 +55,7 @@
         "text": "If the side of the square is 4 cm, find the area of the shaded region."
       }
     ],
-    "image": "/questions/quantitative/test-3/q02-circles-in-square.png",
+    "image": "/questions/gat/quantitative/test-3/q02-circles-in-square.png",
     "compareTable": null,
     "options": [
       {
@@ -288,7 +288,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-3/q06-triangle-apex-angles.png",
+    "image": "/questions/gat/quantitative/test-3/q06-triangle-apex-angles.png",
     "compareTable": null,
     "options": [
       {
@@ -327,7 +327,7 @@
         "text": "3 tangent circles each with radius equal to 1 cm are making the opposite shape. What is the combined circumference?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q07-three-tangent-circles.png",
+    "image": "/questions/gat/quantitative/test-3/q07-three-tangent-circles.png",
     "compareTable": null,
     "options": [
       {
@@ -637,7 +637,7 @@
         "text": "A rectangle with a perimeter of 28 cm is divided into 5 equal rectangles as shown. Find the area of one rectangle."
       }
     ],
-    "image": "/questions/quantitative/test-3/q14-rectangle-vertical-strips.png",
+    "image": "/questions/gat/quantitative/test-3/q14-rectangle-vertical-strips.png",
     "compareTable": null,
     "options": [
       {
@@ -762,7 +762,7 @@
         "text": "ABCD is a square with a side length of 4 cm. What is the area of trapezoid BCFE?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q17-square-diagonal-shaded.png",
+    "image": "/questions/gat/quantitative/test-3/q17-square-diagonal-shaded.png",
     "compareTable": null,
     "options": [
       {
@@ -1017,7 +1017,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-3/q22-parallel-lines-angles.png",
+    "image": "/questions/gat/quantitative/test-3/q22-parallel-lines-angles.png",
     "compareTable": null,
     "options": [
       {
@@ -1064,7 +1064,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-3/q23-inscribed-triangle-circle.png",
+    "image": "/questions/gat/quantitative/test-3/q23-inscribed-triangle-circle.png",
     "compareTable": null,
     "options": [
       {
@@ -1431,7 +1431,7 @@
         "text": "The graph shows the sales of a clothing store. Which month had the highest total sales?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q30-bar-chart-clothing-sales.png",
+    "image": "/questions/gat/quantitative/test-3/q30-bar-chart-clothing-sales.png",
     "compareTable": null,
     "options": [
       {
@@ -1470,7 +1470,7 @@
         "text": "There are 300 students represented in the opposite shape. How many students were absent?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q31-pie-chart-exam-results.png",
+    "image": "/questions/gat/quantitative/test-3/q31-pie-chart-exam-results.png",
     "compareTable": null,
     "options": [
       {
@@ -1509,7 +1509,7 @@
         "text": "Based on the figure below, what was the profit in September?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q32-bar-chart-company-sales.png",
+    "image": "/questions/gat/quantitative/test-3/q32-bar-chart-company-sales.png",
     "compareTable": null,
     "options": [
       {
@@ -1548,7 +1548,7 @@
         "text": "The graph shows the percentages of cars made in different countries. Which country is the largest producer of cars?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q33-pie-chart-car-imports.png",
+    "image": "/questions/gat/quantitative/test-3/q33-pie-chart-car-imports.png",
     "compareTable": null,
     "options": [
       {
@@ -1587,7 +1587,7 @@
         "text": "The table shows data of different schools. What percentage of the total classrooms are in Al-Nour School approximately?"
       }
     ],
-    "image": "/questions/quantitative/test-3/q34-data-table-school-stats.png",
+    "image": "/questions/gat/quantitative/test-3/q34-data-table-school-stats.png",
     "compareTable": null,
     "options": [
       {
@@ -1964,7 +1964,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-3/q42-three-circles-in-rectangle.png",
+    "image": "/questions/gat/quantitative/test-3/q42-three-circles-in-rectangle.png",
     "compareTable": null,
     "options": [
       {

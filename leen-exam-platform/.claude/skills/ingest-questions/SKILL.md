@@ -44,6 +44,10 @@ Ask for whatever the user didn't already supply:
   If the user names something that doesn't exist, say so; don't guess the
   closest match.
 - **One or more `.docx` source files** — ask for the actual file path(s).
+  Tracked source fixtures live under `tests-source/<exam-id>/<section>/`
+  (GAT's are under `tests-source/gat/`) — don't assume every future exam's
+  sources belong under `tests-source/gat/` too; ask where they live if the
+  user hasn't said.
 - **Whether category-based performance is enabled** for this exam — you can
   read this yourself from `exam.config.js`'s `performance.byCategory`
   rather than asking, but confirm your reading with the user if the file is
@@ -137,10 +141,9 @@ Only after Phase A's ambiguities are resolved with the user.
 
 1. **Extract required media** with `scripts/docx-extract-media.ps1`,
    writing into `public/questions/<exam-id>/<section-id>/<test-key-or-n>/`
-   (see `references/question-schema.md`'s "Asset path convention" — a new
-   exam always gets the exam-id segment; never write into GAT's own
-   `public/questions/quantitative/` or `public/questions/verbal/` unless
-   you are genuinely re-ingesting GAT itself). Use descriptive filenames
+   (see `references/question-schema.md`'s "Asset path convention" — every
+   exam, GAT included, gets its own exam-id segment; never write into
+   another exam's `public/questions/<other-id>/...` path). Use descriptive filenames
    (`q06-triangles-abc-dbc.png`, not `image7.png`). Never overwrite an
    existing asset file without `-Force` and explicit user confirmation.
 2. **Generate the question JSON** per `references/question-schema.md` —

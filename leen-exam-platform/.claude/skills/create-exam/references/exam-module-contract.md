@@ -260,20 +260,46 @@ export const SPECIFIC_TO_GENERAL = { "<specific lesson/category name from raw da
 — confirm this is still true by grepping before relying on it).
 `SPECIFIC_TO_GENERAL` is the one actually consumed, by `questions.js`.
 
-## Activation
+## Registration and activation
 
-`src/exams/active.js` is the single switch:
+These are two separate steps — creating an exam module must do the first,
+and must **never** do the second:
 
-```js
-export { default } from "./gat/index.js";
-```
+1. **Registration** (required — do this): add the new exam to
+   `src/exams/registry.js`, a plain object mapping every exam id this build
+   knows about to its module:
 
-Creating an exam module must **not** change this file. Only change it when
-the user explicitly asks to activate the new exam — then it becomes:
+   ```js
+   // src/exams/registry.js
+   import gat from "./gat/index.js";
+   import <exam-id> from "./<exam-id>/index.js";   // add
 
-```js
-export { default } from "./<exam-id>/index.js";
-```
+   const registry = {
+     gat,
+     <exam-id>,                                     // add
+   };
+
+   export default registry;
+   ```
+
+   This makes the exam *available* to be selected — it does not make it
+   live anywhere.
+
+2. **Activation** (never do this automatically, and never touch a live
+   deployment's settings): `src/exams/active.js` selects the live exam from
+   `import.meta.env.VITE_EXAM_ID` (a Vite build-time env var, defaulting to
+   `"gat"` if unset, throwing if set to an id not in the registry — see
+   `docs/PLATFORM.md`'s "Exam registry" section). It contains no per-exam
+   switch to edit; there is nothing in this repo's tracked files to change
+   to "activate" an exam. Making an exam live means setting `VITE_EXAM_ID`
+   on a deployment (a Netlify site's environment variables — never touch
+   those directly) or locally (`.env.local`, gitignored, or inline on the
+   command line). Do not set this automatically as a side effect of
+   scaffolding. If the user explicitly asks to make the new exam their
+   *local* default, editing `.env.local` on their behalf is reasonable;
+   never edit a deployment's environment variables yourself under any
+   circumstance — tell the user how to set `VITE_EXAM_ID` on the relevant
+   Netlify site instead.
 
 ## Static, non-config-driven files (out of scope for this Skill)
 

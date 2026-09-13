@@ -8,7 +8,7 @@
         "text": "Find the area of the shaded part if the side length of the square is 2 cm. "
       }
     ],
-    "image": "/questions/quantitative/test-2/q01-shaded-rectangle-triangle.png",
+    "image": "/questions/gat/quantitative/test-2/q01-shaded-rectangle-triangle.png",
     "compareTable": null,
     "options": [
       {
@@ -47,7 +47,7 @@
         "text": "Find the area of the shaded region."
       }
     ],
-    "image": "/questions/quantitative/test-2/q02-shaded-quadrilateral-rectangle.png",
+    "image": "/questions/gat/quantitative/test-2/q02-shaded-quadrilateral-rectangle.png",
     "compareTable": null,
     "options": [
       {
@@ -232,7 +232,7 @@
         "text": "Find the area of the shaded triangle. "
       }
     ],
-    "image": "/questions/quantitative/test-2/q06-shaded-triangle-square.png",
+    "image": "/questions/gat/quantitative/test-2/q06-shaded-triangle-square.png",
     "compareTable": null,
     "options": [
       {
@@ -334,7 +334,7 @@
         "text": " "
       }
     ],
-    "image": "/questions/quantitative/test-2/q08-circle-chords-abcd.png",
+    "image": "/questions/gat/quantitative/test-2/q08-circle-chords-abcd.png",
     "compareTable": null,
     "options": [
       {
@@ -596,7 +596,7 @@
         "text": "If the perimeter of the square is 64 cm, what is the area of a small rectangle?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q14-square-vertical-strips.png",
+    "image": "/questions/gat/quantitative/test-2/q14-square-vertical-strips.png",
     "compareTable": null,
     "options": [
       {
@@ -659,7 +659,7 @@
         "text": ", find x."
       }
     ],
-    "image": "/questions/quantitative/test-2/q15-cuboid-dimensions.png",
+    "image": "/questions/gat/quantitative/test-2/q15-cuboid-dimensions.png",
     "compareTable": null,
     "options": [
       {
@@ -741,7 +741,7 @@
         "text": "Find the value of x in the following shape."
       }
     ],
-    "image": "/questions/quantitative/test-2/q17-trapezoid-parallel-lines.png",
+    "image": "/questions/gat/quantitative/test-2/q17-trapezoid-parallel-lines.png",
     "compareTable": null,
     "options": [
       {
@@ -1025,7 +1025,7 @@
         "text": "."
       }
     ],
-    "image": "/questions/quantitative/test-2/q22-triangle-exterior-angles.png",
+    "image": "/questions/gat/quantitative/test-2/q22-triangle-exterior-angles.png",
     "compareTable": null,
     "options": [
       {
@@ -1477,7 +1477,7 @@
         "text": "The graph shows the sales of a clothing store. In which month were women’s clothing sales the lowest?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q30-bar-chart-clothing-sales.png",
+    "image": "/questions/gat/quantitative/test-2/q30-bar-chart-clothing-sales.png",
     "compareTable": null,
     "options": [
       {
@@ -1516,7 +1516,7 @@
         "text": "There are 300 students represented in the opposite shape. How many students passed the exam?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q31-pie-chart-exam-results.png",
+    "image": "/questions/gat/quantitative/test-2/q31-pie-chart-exam-results.png",
     "compareTable": null,
     "options": [
       {
@@ -1555,7 +1555,7 @@
         "text": "Based on the figure below, what was the highest percentage increase in silk sales from one month to the next?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q32-bar-chart-company-sales.png",
+    "image": "/questions/gat/quantitative/test-2/q32-bar-chart-company-sales.png",
     "compareTable": null,
     "options": [
       {
@@ -1594,7 +1594,7 @@
         "text": "The graph shows the percentages of cars made in different countries. What is the percentage of cars made in the USA?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q33-pie-chart-car-imports.png",
+    "image": "/questions/gat/quantitative/test-2/q33-pie-chart-car-imports.png",
     "compareTable": null,
     "options": [
       {
@@ -1633,7 +1633,7 @@
         "text": "The table shows data of different schools. How many non-Saudi teachers are there in total?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q34-data-table-school-stats.png",
+    "image": "/questions/gat/quantitative/test-2/q34-data-table-school-stats.png",
     "compareTable": null,
     "options": [
       {
@@ -1885,7 +1885,7 @@
         "text": "Find the mean of the values for all colors in 2017."
       }
     ],
-    "image": "/questions/quantitative/test-2/q39-bar-chart-colors-by-year.png",
+    "image": "/questions/gat/quantitative/test-2/q39-bar-chart-colors-by-year.png",
     "compareTable": null,
     "options": [
       {
@@ -2006,7 +2006,7 @@
         "text": "What will be the maximum area of the circle if it is inscribed in a square of base length 16?"
       }
     ],
-    "image": "/questions/quantitative/test-2/q42-circle-inscribed-square.png",
+    "image": "/questions/gat/quantitative/test-2/q42-circle-inscribed-square.png",
     "compareTable": null,
     "options": [
       {
@@ -2139,7 +2139,7 @@
         "text": ":"
       }
     ],
-    "image": "/questions/quantitative/test-2/q45-pie-chart-number-wheel.png",
+    "image": "/questions/gat/quantitative/test-2/q45-pie-chart-number-wheel.png",
     "compareTable": null,
     "options": [
       {

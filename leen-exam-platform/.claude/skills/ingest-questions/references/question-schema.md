@@ -119,15 +119,14 @@ array of segments:
 Same `prompt` array shape as `"text"`, plus:
 
 ```json
-"image": "/questions/quantitative/test-1/q01-shaded-circle-sectors.png"
+"image": "/questions/gat/quantitative/test-1/q01-shaded-circle-sectors.png"
 ```
 
 - `image` is an absolute site path (leading `/`), resolved against
   `public/`. The actual file lives at
-  `public/questions/quantitative/test-1/q01-shaded-circle-sectors.png` for
-  this GAT example. **See "Asset path convention" below — GAT's own paths
-  don't include an exam-id segment because GAT predates the multi-exam
-  refactor; a new exam's ingested images MUST include the exam-id segment.**
+  `public/questions/gat/quantitative/test-1/q01-shaded-circle-sectors.png`
+  for this GAT example — see "Asset path convention" below. Every exam,
+  GAT included, is namespaced under its own exam-id segment.
 - `compareTable` may also be set on an `"image"`-kind question (GAT does
   this for image-backed comparison questions).
 - Filenames are descriptive slugs (`q01-shaded-circle-sectors.png`, not
@@ -259,21 +258,20 @@ export const SPECIFIC_TO_GENERAL = { "<specific lesson name>": "<general categor
 
 ## Asset path convention
 
-GAT's own images live at `public/questions/<section-id>/test-<n>/...` —
-**no exam-id segment**, because GAT was the original single-exam app before
-the platform refactor. `docs/PLATFORM.md` and `create-exam/SKILL.md` are
-explicit that a *new* exam must use its own namespaced path so it can never
-collide with GAT's:
+Every exam's question images — GAT included — live under its own exam-id
+segment, so no two exams can ever collide:
 
 ```
 public/questions/<exam-id>/<section-id>/<test-key-or-number>/<descriptive-slug>.png
 ```
 
-When ingesting into GAT itself (rare — GAT is already fully populated),
-match GAT's existing convention exactly. When ingesting into any other exam
-scaffolded by `/create-exam`, always include the exam-id segment. Never
-write into `public/questions/quantitative/` or `public/questions/verbal/`
-(GAT's actual paths) while ingesting for a different exam.
+GAT's images used to live at `public/questions/<section-id>/test-<n>/...`
+(no exam-id segment) as a historical artifact of predating the multi-exam
+refactor; they were migrated to `public/questions/gat/<section-id>/test-<n>/...`
+so the convention above is now exceptionless. When ingesting into GAT itself
+(rare — GAT is already fully populated) or any other exam scaffolded by
+`/create-exam`, always include the exam-id segment. Never write into
+another exam's `public/questions/<other-id>/...` path.
 
 ## What `id`/`order`/uniqueness actually depend on
 

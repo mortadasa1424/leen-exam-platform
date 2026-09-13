@@ -11,6 +11,7 @@ export {
   LayoutGrid,
   MessageCircle,
   ChevronRight,
+  ChevronLeft,
   ChevronDown,
   X,
   Check,

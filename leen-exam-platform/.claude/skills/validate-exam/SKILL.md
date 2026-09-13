@@ -34,7 +34,8 @@ target), or platform core, and it is read-only by default.
 ## Input
 
 **Required**: target exam ID. If missing, ask — don't default to whichever
-exam is currently active in `src/exams/active.js` (that may not be the one
+exam is currently active (selected by that environment's `VITE_EXAM_ID` —
+see `docs/PLATFORM.md`'s "Exam registry" section; that may not be the one
 the user means).
 
 **Optional** (ask, or use sensible defaults noted below):
@@ -58,10 +59,16 @@ the user means).
   `exam.config.js` (and sibling exams' `exam.config.js`, read-only) and
   reads files with `fs`.
 - Never modify: another exam's files, GAT's files (unless GAT is the actual
-  target), `src/App.jsx`, anything under `src/components/`, `src/lib/`,
-  `src/styles/`, `src/i18n/`, `src/config/brand.js`, or CSS/dependencies —
-  unless the user explicitly asks for one of those as a separate, distinct
-  request (that's out of scope for a validation run).
+  target), `src/exams/active.js`, `src/exams/registry.js`, `src/App.jsx`,
+  anything under `src/components/`, `src/lib/`, `src/styles/`, `src/i18n/`,
+  `src/config/brand.js`, or CSS/dependencies — unless the user explicitly
+  asks for one of those as a separate, distinct request (that's out of
+  scope for a validation run). Runtime/UI validation of a non-active exam
+  never requires editing either of the first two files — see "Temporary
+  activation" below.
+- Never set, unset, or otherwise touch `VITE_EXAM_ID` on any actual
+  deployment (e.g. a Netlify site's environment variables) — only ever pass
+  it as a one-off env var to a local command (see "Temporary activation").
 - Never silently "fix" exam content (a bad answer key, a malformed question,
   a missing asset) — report it. This Skill audits; `/ingest-questions`
   authors.
@@ -76,23 +83,32 @@ Most of this Skill's checks (Levels 1–4, 7) work by reading
 **do not require the exam to be active** (see
 `references/validation-matrix.md` for why `questions.js`/`index.js` aren't
 imported either). Only genuine in-browser rendering (Level 9) needs the
-exam to actually be the one `src/exams/active.js` points at.
+exam to actually be the one selected by `VITE_EXAM_ID`.
 
-If — and only if — the user asks for runtime/UI validation of a
-currently-inactive exam:
+Since exam selection is a `VITE_EXAM_ID` build-time env var (see
+`docs/PLATFORM.md`'s "Exam registry" section), not a line in a tracked
+file, validating a non-active exam's runtime behavior needs **no file
+edits and nothing to revert** — pass the variable to the one-off command
+instead:
 
-1. Read and record the exact current contents of `src/exams/active.js`.
-2. Change only its one export line to point at the target exam's
-   `index.js`.
-3. Run the runtime checks.
-4. Restore `src/exams/active.js` to the exact content recorded in step 1.
-5. Run `git status` (or `git diff -- src/exams/active.js`) and confirm it
-   shows no change to that file before finishing. If it still shows a
-   diff, that's a bug in this run — fix it before reporting completion;
-   never leave a temporary activation behind.
+```
+VITE_EXAM_ID=<exam-id> npm run dev        # bash
+$env:VITE_EXAM_ID="<exam-id>"; npm run dev   # PowerShell
+```
 
-If the exam being validated is already the active one, skip this whole
-dance — there's nothing to restore.
+Confirm first that `<exam-id>` is actually registered in
+`src/exams/registry.js` — if it isn't (e.g. `/create-exam` was run but
+registration was skipped), the dev server will start but the app will
+throw immediately on load with "Unknown VITE_EXAM_ID"; report that as a
+registration gap, not a runtime bug in the exam itself, and stop rather
+than trying to work around it.
+
+Because this never touches a tracked file, there is nothing to restore and
+no `git status`/`git diff` check needed afterward for this step specifically
+— the one thing to still never do is set `VITE_EXAM_ID` on an actual
+deployment (Netlify) to "activate" the exam for this check; the env var
+only needs to exist for the local command's process, not persisted
+anywhere.
 
 ## Validation levels
 
@@ -157,10 +173,9 @@ a failure — it's an honest "still needs a human," which is exactly what
 the final report's status field should say.
 
 If the user has separately set up browser tooling (or explicitly approves
-installing one for this run), you may use it — start the dev server
-(`npm run dev`), exercise the flow above against a temporarily-activated
-exam (see "Temporary activation"), watch the console for new errors, then
-restore `active.js`.
+installing one for this run), you may use it — start the dev server with
+`VITE_EXAM_ID=<exam-id>` set (see "Temporary activation"), exercise the flow
+above, and watch the console for new errors.
 
 ## Severity model
 
@@ -238,9 +253,9 @@ two above.
 
 ## Critical principles
 
-- Read-only by default; the one narrow exception (temporary `active.js`
-  activation for Level 9, only if asked) must always be reverted, verified
-  by `git status` showing no diff on that file.
+- Read-only by default; Level 9's temporary activation (only if asked) is a
+  one-off `VITE_EXAM_ID=<exam-id>` env var passed to the dev-server command,
+  never a file edit — so there is no file to revert or diff to check.
 - Never silently fix exam content, never auto-edit platform core, never
   auto-delete assets, never auto-deploy, never commit, never push, never
   install dependencies without explicit approval.
@@ -255,9 +270,12 @@ two above.
 
 After running the levels above, report to the user using the "Report"
 section's structure, plus:
-- Exact command(s) run for reproducibility.
-- Whether `active.js` was ever touched, and confirmation it was restored
-  (or that it didn't need to be).
+- Exact command(s) run for reproducibility, including any `VITE_EXAM_ID`
+  value used for Level 9.
+- Confirmation that no tracked file (`src/exams/active.js`,
+  `src/exams/registry.js`, or otherwise) was left changed — Level 9's
+  temporary activation is env-var-only, so there should be nothing to
+  restore.
 - Current `git status`.
 - The exact recommended next step (usually: fix BLOCKERs and re-run;
   or, if clean, "run manual visual QA using the Level 9 checklist, then

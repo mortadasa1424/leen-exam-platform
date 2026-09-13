@@ -42,7 +42,7 @@
   reported and skipped, never silently overwritten.
 
 .EXAMPLE
-  .\docx-extract-media.ps1 -DocxPath "tests-source\quantitative\quantitative-1.docx" `
+  .\docx-extract-media.ps1 -DocxPath "tests-source\gat\quantitative\quantitative-1.docx" `
     -OutDir "public\questions\saat\quantitative\test-1" `
     -Entries "media/image2.png","media/image3.png" `
     -Rename '{"media/image2.png":"q01-shaded-circle-sectors.png","media/image3.png":"q02-shaded-square-quadrants.png"}'

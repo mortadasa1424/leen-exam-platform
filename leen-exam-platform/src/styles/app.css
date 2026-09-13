@@ -757,6 +757,10 @@ body.light .modal p.modal-comment{color:#6b6585}
 .q-word-wrap.no-speaker{padding:12px 0 8px}
 .compact-hint{margin:14px 0 0;border:1px dashed rgba(255,139,19,.35);background:rgba(255,139,19,.08);color:#7a4a00;text-align:center;font-weight:700}
 .card-nav-row{display:flex;gap:9px;margin-top:14px;direction:ltr}
+/* RTL platforms: reverse the row so Previous (first in DOM/tab order) sits
+   on the right and Next sits on the left, mirroring the LTR layout above
+   instead of inheriting the hardcoded ltr direction. */
+[dir="rtl"] .card-nav-row{direction:rtl}
 .card-nav-row .nav-btn{background:rgba(255,255,255,.78);border-color:rgba(0,195,225,.14);color:var(--paper-ink)}
 .card-nav-row .nav-btn.primary{background:linear-gradient(120deg,var(--brand-cyan),var(--brand-cyan-2));color:#04222e;border:none}
 

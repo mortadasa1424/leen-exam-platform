@@ -35,7 +35,7 @@
   .gitignore entry or manual cleanup before committing).
 
 .EXAMPLE
-  .\docx-inspect.ps1 -DocxPath "tests-source\quantitative\quantitative-1.docx"
+  .\docx-inspect.ps1 -DocxPath "tests-source\gat\quantitative\quantitative-1.docx"
 #>
 param(
   [Parameter(Mandatory = $true)][string]$DocxPath,

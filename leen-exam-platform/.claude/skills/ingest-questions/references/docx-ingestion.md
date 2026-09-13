@@ -9,12 +9,18 @@ requirement depends on.
 
 This reference documents both **what's generically true of any `.docx`**
 (the OpenXML package shape) and **patterns observed in this repo's actual
-source files** (`tests-source/quantitative/*.docx`,
-`tests-source/verbal/*.docx`) as illustrations — not universal rules. A
+source files** (GAT's `tests-source/gat/quantitative/*.docx`,
+`tests-source/gat/verbal/*.docx`) as illustrations — not universal rules. A
 different source file may use none of these custom styles/markers; when it
 doesn't, fall back to structural heuristics (paragraph order, blank-line
 grouping, explicit "A)"/"B)" option prefixes) and say so in the ingestion
 summary rather than silently assuming GAT's exact conventions apply.
+
+Tracked `.docx` source fixtures live under `tests-source/<exam-id>/<section>/`
+— one subtree per exam (GAT's is `tests-source/gat/`), so a future exam's
+sources never collide with another exam's. Don't assume every future exam
+is GAT; ask the user where a new exam's source files live if they haven't
+said, rather than guessing `tests-source/gat/`.
 
 ## Package layout that matters
 

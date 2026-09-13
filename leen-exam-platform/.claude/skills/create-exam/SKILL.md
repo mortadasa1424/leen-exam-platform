@@ -1,14 +1,19 @@
 ---
 name: create-exam
-description: Scaffold a new exam module (src/exams/<exam-id>/) for this repo's reusable exam platform, without touching the generic engine (App.jsx, components/, lib/, styles) or any other exam's files. Use when the user runs /create-exam, or asks to add/create a new exam (e.g. SAAT, STEP) on top of this platform. Does not import real questions (that's /ingest-questions) and does not switch the active exam unless explicitly asked.
+description: Scaffold a new exam module (src/exams/<exam-id>/) for this repo's reusable exam platform, without touching the generic engine (App.jsx, components/, lib/, styles) or any other exam's files. Use when the user runs /create-exam, or asks to add/create a new exam (e.g. SAAT, STEP) on top of this platform. Does not import real questions (that's /ingest-questions), registers the new exam in src/exams/registry.js, but never sets any deployment's VITE_EXAM_ID (that's a separate, explicit deploy-time decision, never automatic).
 ---
 
 # create-exam
 
 Scaffold a new exam module that plugs into this repo's reusable exam
 platform (see `docs/PLATFORM.md`). This Skill creates config/data/module
-files only — it never touches the generic engine, never edits another
-exam's files, and never activates the new exam unless explicitly told to.
+files and registers the new exam in `src/exams/registry.js` — it never
+touches the generic engine, never edits another exam's files, and never
+sets any deployment's `VITE_EXAM_ID` (registering an exam makes it
+*available*; a deployment's own `VITE_EXAM_ID` is what makes an exam
+*live*, and that's always a separate, explicit decision for whoever owns
+that deployment — this Skill never makes it, even if asked, though it can
+tell the user how to set it themselves for local dev or on Netlify).
 
 ## Before doing anything
 
@@ -130,12 +135,23 @@ required config value) and tell them the file itself still needs to be
 added under `public/assets/marketing/` before the popup/footer will render
 correctly — don't silently substitute GAT's asset file.
 
-## Step 3 — Do not touch
+## Step 3 — Register, but do not activate
 
-- `src/exams/active.js` — leave untouched unless the user explicitly asks
-  to activate this new exam right now. If they do, change only its one
-  export line to point at `./<exam-id>/index.js`, after confirming this
-  will replace whichever exam is currently active.
+- `src/exams/registry.js` — **do** add this new exam here; the platform
+  contract requires every exam module to be registered before it can ever
+  be selected. Add one import (`import <exam-id> from "./<exam-id>/index.js";`)
+  and one line inside the `registry` object (`<exam-id>,`). Nothing else in
+  that file changes.
+- `src/exams/active.js` — leave untouched. It contains only the
+  `VITE_EXAM_ID` selection logic, not a per-exam switch, so it never needs
+  editing to add or register an exam.
+- **Never set/change any deployment's `VITE_EXAM_ID`** (a `.env` file, a
+  Netlify site's environment variables, etc.) as part of scaffolding —
+  activation is a separate, deliberate deploy-time decision for whichever
+  site should serve this exam, not something this Skill does automatically.
+  Registering an exam and activating it are different steps: registering
+  makes it *available*; only that deployment's own `VITE_EXAM_ID` makes it
+  *live*.
 - Any other file under `src/exams/gat/` (or any other existing exam).
 - `src/App.jsx`, anything under `src/components/`, `src/lib/`,
   `src/styles/`, `src/i18n/`, and `src/config/brand.js` — these are generic
@@ -153,13 +169,15 @@ correctly — don't silently substitute GAT's asset file.
 
 ## Step 4 — Validate
 
-Without modifying `active.js` permanently:
+Without changing any deployment's active exam:
 
-1. Confirm the new module's files parse and import cleanly — e.g.
-   temporarily point `src/exams/active.js` at the new module, run the
-   project's build/typecheck, then revert `active.js` to its original
-   content (or just leave it changed only if the user asked to activate).
-   A simple alternative that avoids touching `active.js` at all: write a
+1. Confirm the new module's files parse and import cleanly — after
+   registering it in `src/exams/registry.js` (Step 3), run the project's
+   build with `VITE_EXAM_ID=<exam-id>` set for that one command only (e.g.
+   `VITE_EXAM_ID=<exam-id> npm run build` in bash, or
+   `$env:VITE_EXAM_ID="<exam-id>"; npm run build` in PowerShell) — this
+   requires no file edits/reverts, since selection is an env var, not a
+   line in `active.js`. A simpler alternative that avoids even that: write a
    throwaway script/entry that imports `../src/exams/<exam-id>/index.js`
    directly and checks its shape.
 2. Verify:
@@ -173,8 +191,8 @@ Without modifying `active.js` permanently:
    - If `performance.byCategory` is `true`, `categories.js` exists and
      `exam.config.js` references it; if `false`, confirm no `categories`
      key exists and no `categories.js` file was created.
-3. Run `npm run build` (from the `leen-exam-platform` directory) if the exam was
-   temporarily activated for validation, and report the result.
+3. Run `npm run build` (from the `leen-exam-platform` directory), with
+   `VITE_EXAM_ID=<exam-id>` set as above, and report the result.
 4. Report any validation failures plainly; don't paper over them.
 
 ## Step 5 — Report
@@ -195,7 +213,10 @@ At the end, report:
 - Lead capture status (enabled/disabled, fields configured).
 - Question ingestion status: **not done** — placeholder `[]` files only.
 - Validation/build result.
-- Whether the exam is active (should be "no" unless explicitly requested).
+- Whether the exam was registered in `src/exams/registry.js` (should be
+  "yes" — required by Step 3) and whether it is *active* anywhere (should
+  be "no" — registering is not activating; activation is a deployment's own
+  `VITE_EXAM_ID`, never changed by this Skill).
 - Current `git status`.
 - Next recommended command: `/ingest-questions`.
 
