@@ -1,5 +1,10 @@
 # Leen GAT Practice App
 
+> This app is the first exam built on a reusable exam platform — the
+> quiz/results/review engine is generic, and GAT is a config + dataset on top
+> of it. See [docs/PLATFORM.md](docs/PLATFORM.md) for that architecture and
+> how to add another exam. This document stays focused on GAT specifically.
+
 A free practice app for the GAT exam: Quantitative and Verbal sections, each
 with three fixed-form tests. Built as a single-page React app — no backend of
 its own, aside from a Google Apps Script webhook that captures leads before a
@@ -35,14 +40,17 @@ GAT app/
 ├── index.html                # entry HTML; loads /lead-config.js then main.jsx
 ├── src/
 │   ├── main.jsx               # React root
-│   ├── App.jsx                # screen state machine, attempt/resume/lead flow
-│   ├── components/            # one file per screen/UI piece (Home, Quiz, Results, ...)
-│   ├── config/marketing.js    # course URL, WhatsApp number, promo asset paths, timer length
-│   ├── data/                  # question datasets + scoring schema (see below)
-│   ├── lib/                   # scoring, sound cues, localStorage helpers
-│   └── styles/app.css         # all app styling
+│   ├── App.jsx                # screen state machine, attempt/resume/lead flow (generic)
+│   ├── components/            # one file per screen/UI piece (Home, Quiz, Results, ...) — generic
+│   ├── config/brand.js        # Leen company logo/name — shared across every exam, not GAT-specific
+│   ├── exams/                 # exam modules — see docs/PLATFORM.md
+│   │   ├── active.js           # which exam is live (currently GAT)
+│   │   └── gat/                # GAT's config, category map, question loader, and datasets
+│   ├── lib/                   # scoring, sound cues, localStorage helpers (generic)
+│   └── styles/app.css         # all app styling (generic)
 ├── public/                    # static assets served as-is (images, flags, question images)
 ├── tests-source/              # original .docx source documents for the six datasets (reference only)
+├── docs/PLATFORM.md           # reusable-platform architecture guide
 └── netlify.toml, public/_headers, public/_redirects   # Netlify deploy config
 ```
 
@@ -50,16 +58,17 @@ GAT app/
 
 The six approved datasets live in:
 
-- `src/data/quant/test-1.json`, `test-2.json`, `test-3.json`
-- `src/data/verbal/test-1.json`, `test-2.json`, `test-3.json` (+ matching
-  `passages-1/2/3.json` for Reading Comprehension passages)
+- `src/exams/gat/data/quant/test-1.json`, `test-2.json`, `test-3.json`
+- `src/exams/gat/data/verbal/test-1.json`, `test-2.json`, `test-3.json` (+
+  matching `passages-1/2/3.json` for Reading Comprehension passages)
 
-`src/data/schema.js` documents the question shape and the
+`src/exams/gat/categories.js` documents the question shape and the
 `specificCategory -> generalCategory` mapping used for the Performance
-report. `src/data/tests.js` normalizes the raw JSON into fixed-order test
-sets at load time (namespacing ids, attaching `generalCategory`, etc.) —
-**this is where question content is loaded and shaped, never edit question
-text/answers/categories directly in code.**
+report. `src/exams/gat/questions.js` normalizes the raw JSON into
+fixed-order test sets at load time (namespacing ids, attaching
+`generalCategory`/`mathLayout`, etc.) — **this is where question content is
+loaded and shaped, never edit question text/answers/categories directly in
+code.**
 
 Question images referenced by these datasets live under
 `public/questions/quantitative/test-N/...` — paths in the JSON are absolute
@@ -68,23 +77,29 @@ Question images referenced by these datasets live under
 `tests-source/` for reference; they are not read by the app at runtime.
 
 Treat all six datasets as read-only content. If you must move them, keep
-their content byte-for-byte identical and update the two imports in
-`src/data/tests.js`.
+their content byte-for-byte identical and update the imports in
+`src/exams/gat/questions.js`.
 
 ## Marketing configuration
 
-All marketing/promo values are centralized in `src/config/marketing.js`:
+All marketing/promo values are centralized in the `marketing` block of
+`src/exams/gat/exam.config.js`:
 
-- `COURSE_URL_BASE` / `UTM_PARAMS` — the GAT course link and its UTM tags
-- `WHATSAPP_NUMBER` — international format, no `+` or spaces
-- `PROMO_ASSETS` — paths to the footer banner and popup ad images/video
-  (`null` disables that placement and falls back to a plain text footer /
-  placeholder popup)
-- `DEFAULT_TEST_MINUTES` — the single overall timer length used by every
-  timed test (60 minutes)
+- `courseUrl` — the GAT course link (built from a base URL + UTM tags in the
+  same file)
+- `whatsappNumber` / `whatsappUrl` — international format, no `+` or spaces
+- `promoVideo` / `footerBanner` — paths to the popup ad video and footer
+  banner image (`footerBanner: null` disables that placement and falls back
+  to a plain text footer)
+- `copy` — UI strings that name the exam/course (footer aria-labels, alt
+  text, help-link text), kept alongside the links they go with
+- the exam's `timer.minutes` field (also in `exam.config.js`) is the single
+  overall timer length used by every timed test (60 minutes)
 
 To swap a promo asset, drop the new file in `public/assets/marketing/` and
-point the relevant `PROMO_ASSETS` key at it — no other code changes needed.
+point the relevant `marketing` key at it — no other code changes needed. See
+[docs/PLATFORM.md](docs/PLATFORM.md) for how this fits into the wider
+exam-config schema.
 
 ## Google Sheets lead integration
 
@@ -133,7 +148,7 @@ There are no `.env` files or build-time secrets. The only external
 configuration is:
 
 - `public/lead-config.js` — the Google Sheets webhook URL (see above)
-- `src/config/marketing.js` — course link, WhatsApp number, promo assets
+- `src/exams/gat/exam.config.js` — course link, WhatsApp number, promo assets
 
 Both are plain static values checked into the repo; there is nothing here
 that a build step injects. If a per-environment (staging vs. production)
@@ -159,6 +174,6 @@ duplicate the same rules for platforms that read those files instead of
   its response) — it does not affect the production build. Fixing it
   requires a Vite 8 major upgrade; left alone intentionally for this
   release. Re-evaluate before the next major version bump.
-- `COURSE_URL_BASE` in `marketing.js` is still marked `TODO` pending the
-  final GAT course URL from Leen — update it there, not at the call sites.
-  `WHATSAPP_NUMBER` is already the confirmed, live number.
+- `COURSE_URL_BASE` in `src/exams/gat/exam.config.js` is still marked `TODO`
+  pending the final GAT course URL from Leen — update it there, not at the
+  call sites. `WHATSAPP_NUMBER` is already the confirmed, live number.

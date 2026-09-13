@@ -1,17 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header, Footer, MainLogo } from "./Home.jsx";
 import { scoreAttempt } from "../lib/scoring.js";
-import { rehydrateQuestions } from "../data/tests.js";
+import activeExam from "../exams/active.js";
 import { Sound } from "../lib/sound.js";
-import { COURSE_URL, WHATSAPP_URL } from "../config/marketing.js";
+import { t } from "../i18n/index.js";
 import { BarChart3, Eye, RotateCcw, MessageCircle, ChevronDown } from "./icons.jsx";
 
 const RC = 2 * Math.PI * 74;
 
 export default function Results({ attempt, dark, onToggleDark, soundOn, onToggleSound, onHome, onReport, onReview, onPracticeMistakes }) {
+  const { courseUrl, whatsappUrl, copy } = activeExam.config.marketing;
+  const byCategory = Boolean(activeExam.config.performance?.byCategory);
   const currentAttempt = useMemo(() => ({
     ...attempt,
-    questions: rehydrateQuestions(attempt?.questions || []),
+    questions: activeExam.rehydrateQuestions(attempt?.questions || []),
   }), [attempt]);
   const res = scoreAttempt(currentAttempt);
   const { pct, correct, incorrect, unanswered } = res;
@@ -21,7 +23,7 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    const t = setTimeout(() => setOffset(RC * (1 - pct / 100)), 200);
+    const scoreTimer = setTimeout(() => setOffset(RC * (1 - pct / 100)), 200);
     let n = 0; const step = Math.max(1, Math.round(pct / 40));
     const ci = setInterval(() => { n = Math.min(n + step, pct); setShown(n); if (n >= pct) clearInterval(ci); }, 26);
     Sound.complete(pct);
@@ -31,7 +33,7 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
     // its own check.
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (pct >= 50 && !reduceMotion) burst();
-    return () => { clearTimeout(t); clearInterval(ci); };
+    return () => { clearTimeout(scoreTimer); clearInterval(ci); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -63,7 +65,7 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
       <MainLogo dark={dark} />
 
       <div className="scroll-area results-scroll">
-        <div className="res-title">Test Results</div>
+        <div className="res-title">{t("results.title")}</div>
 
         <div className="results-layout">
           <div className="results-primary">
@@ -80,22 +82,22 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
             </div>
 
             <div className="res-badges">
-              <div className="rbadge ok"><b>{correct}</b><span>Correct</span></div>
-              <div className="rbadge no"><b>{incorrect}</b><span>Incorrect</span></div>
-              <div className="rbadge gr"><b>{unanswered}</b><span>Unanswered</span></div>
+              <div className="rbadge ok"><b>{correct}</b><span>{t("results.correct")}</span></div>
+              <div className="rbadge no"><b>{incorrect}</b><span>{t("results.incorrect")}</span></div>
+              <div className="rbadge gr"><b>{unanswered}</b><span>{t("results.unanswered")}</span></div>
             </div>
           </div>
 
           <div className="results-secondary">
             <div className={`expander ${help ? "open" : ""}`}>
               <button className="expander-head" onClick={() => { Sound.tap(); setHelp((h) => !h); }}>
-                Need help? <ChevronDown size={16} className="chev" aria-hidden="true" />
+                {t("results.needHelp")} <ChevronDown size={16} className="chev" aria-hidden="true" />
               </button>
               {help && (
                 <div className="expander-body help-body">
-                  <a className="help-link" href={COURSE_URL} target="_blank" rel="noopener noreferrer">Enroll in the GAT prep course</a>
-                  <a className="help-link wa-action" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
-                    <MessageCircle size={16} aria-hidden="true" /> Contact us on WhatsApp
+                  <a className="help-link" href={courseUrl} target="_blank" rel="noopener noreferrer">{copy.helpLinkText}</a>
+                  <a className="help-link wa-action" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle size={16} aria-hidden="true" /> {t("results.contactWhatsapp")}
                   </a>
                 </div>
               )}
@@ -103,15 +105,17 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
 
             {!allCorrect && (
               <div className="res-actions clean-actions">
-                <button className="btn-primary action-report" onClick={() => { Sound.tap(); onReport(res); }}>
-                  <BarChart3 size={16} aria-hidden="true" /> Performance by Skill
-                </button>
+                {byCategory && (
+                  <button className="btn-primary action-report" onClick={() => { Sound.tap(); onReport(res); }}>
+                    <BarChart3 size={16} aria-hidden="true" /> {t("results.performanceBySkill")}
+                  </button>
+                )}
                 <button className="btn-primary" onClick={() => { Sound.tap(); onReview(res); }}>
-                  <Eye size={16} aria-hidden="true" /> Review Answers
+                  <Eye size={16} aria-hidden="true" /> {t("results.reviewAnswers")}
                 </button>
                 {hasMistakes && (
                   <button className="btn-primary action-warn" onClick={() => { Sound.tap(); onPracticeMistakes(res); }}>
-                    <RotateCcw size={16} aria-hidden="true" /> Practice Mistakes
+                    <RotateCcw size={16} aria-hidden="true" /> {t("results.practiceMistakes")}
                   </button>
                 )}
               </div>

@@ -1,20 +1,8 @@
 import { useState } from "react";
 import { Header, Footer, MainLogo } from "./Home.jsx";
 import { Sound } from "../lib/sound.js";
-
-const COUNTRIES = [
-  { label: "Saudi Arabia", code: "+966", iso: "SA", flagSrc: "/assets/flags/sa.svg" },
-  { label: "UAE", code: "+971", iso: "AE", flagSrc: "/assets/flags/ae.svg" },
-  { label: "Kuwait", code: "+965", iso: "KW", flagSrc: "/assets/flags/kw.svg" },
-  { label: "Qatar", code: "+974", iso: "QA", flagSrc: "/assets/flags/qa.svg" },
-  { label: "Bahrain", code: "+973", iso: "BH", flagSrc: "/assets/flags/bh.svg" },
-  { label: "Oman", code: "+968", iso: "OM", flagSrc: "/assets/flags/om.svg" },
-];
-
-// The displayed label IS the value sent to Apps Script and stored in the
-// sheet verbatim — no internal alias/code. Keep these three exact strings in
-// sync with Code.gs's ALLOWED_GRADE_LEVELS.
-const GRADE_LEVELS = ["10th Grade", "11th Grade", "12th Grade", "Other"];
+import activeExam from "../exams/active.js";
+import { t } from "../i18n/index.js";
 
 function normalizeDigits(s) {
   const map = { "٠":"0","١":"1","٢":"2","٣":"3","٤":"4","٥":"5","٦":"6","٧":"7","٨":"8","٩":"9","۰":"0","۱":"1","۲":"2","۳":"3","۴":"4","۵":"5","۶":"6","۷":"7","۸":"8","۹":"9" };
@@ -31,6 +19,7 @@ function localFromDisplay(display, countryCode) {
 }
 
 export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, onComplete, onHome }) {
+  const { countries: COUNTRIES, gradeLevels: GRADE_LEVELS, webhookGlobalVar } = activeExam.config.leadCapture;
   const [name, setName] = useState("");
   const [country, setCountry] = useState(COUNTRIES[0]);
   const [phone, setPhone] = useState("");
@@ -41,9 +30,9 @@ export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, o
 
   const validate = () => {
     const p = normalizeDigits(phone);
-    if (!p) return "Please enter your phone number";
-    if (hasTooManyRepeatedDigits(p)) return "Phone number is invalid";
-    if (!gradeLevel) return "Please select your grade level";
+    if (!p) return t("lead.errPhoneRequired");
+    if (hasTooManyRepeatedDigits(p)) return t("lead.errPhoneInvalid");
+    if (!gradeLevel) return t("lead.errGradeRequired");
     return "";
   };
 
@@ -51,7 +40,7 @@ export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, o
     const e = validate();
     if (e) { setErr(e); Sound.warn(); return; }
     setErr(""); setSending(true); Sound.tap();
-    const url = window.LEEN_GAT_GOOGLE_SHEETS_WEBHOOK_URL;
+    const url = window[webhookGlobalVar];
     // Form-encoded + no-cors (kept intentionally, not yet reverted): this is a
     // CORS-safelisted simple request, so it reaches Apps Script's doPost with
     // no preflight. mode:"no-cors" makes the response opaque — status/body are
@@ -70,7 +59,7 @@ export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, o
       Sound.start();
       onComplete();
     } catch {
-      setErr("Couldn't confirm your submission. Check your connection and try again.");
+      setErr(t("lead.errSubmitFailed"));
       setSending(false);
     }
   };
@@ -81,18 +70,18 @@ export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, o
       <MainLogo dark={dark} />
       <div className="scroll-area">
         <div className="lead-card clean-lead-card">
-          <label className="lead-field"><span>Name (optional)</span>
-            <input className="lead-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" /></label>
+          <label className="lead-field"><span>{t("lead.nameLabel")}</span>
+            <input className="lead-input" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("lead.namePlaceholder")} /></label>
 
-          <label className="lead-field"><span>Phone Number</span>
+          <label className="lead-field"><span>{t("lead.phoneLabel")}</span>
             <div className="lead-phone flag-phone" dir="ltr">
               <div className="country-picker-wrap">
-                <button type="button" className="country-picker-btn" aria-label="Select country" onClick={() => setShowCountryMenu((v) => !v)}>
+                <button type="button" className="country-picker-btn" aria-label={t("lead.selectCountry")} onClick={() => setShowCountryMenu((v) => !v)}>
                   <img className="country-flag-img" src={country.flagSrc} alt="" />
                   <span className="country-caret">▾</span>
                 </button>
                 {showCountryMenu && (
-                  <div className="country-menu" role="listbox" aria-label="Countries">
+                  <div className="country-menu" role="listbox" aria-label={t("lead.countriesAriaLabel")}>
                     {COUNTRIES.map((c) => (
                       <button
                         key={c.iso}
@@ -123,15 +112,15 @@ export default function LeadForm({ dark, onToggleDark, soundOn, onToggleSound, o
             </div>
           </label>
 
-          <label className="lead-field"><span>Grade Level</span>
-            <div className="lead-chips" role="radiogroup" aria-label="Grade Level">
+          <label className="lead-field"><span>{t("lead.gradeLevelLabel")}</span>
+            <div className="lead-chips" role="radiogroup" aria-label={t("lead.gradeLevelLabel")}>
               {GRADE_LEVELS.map((g) => (
                 <button key={g} className={gradeLevel === g ? "on" : ""} onClick={() => { Sound.select(); setGradeLevel(g); }} type="button" role="radio" aria-checked={gradeLevel === g}>{g}</button>
               ))}
             </div></label>
 
           {err && <div className="lead-error" role="alert">{err}</div>}
-          <button className="btn-primary lead-submit" onClick={submit} disabled={sending}>{sending ? "Sending..." : "Start"}</button>
+          <button className="btn-primary lead-submit" onClick={submit} disabled={sending}>{sending ? t("lead.sending") : t("lead.start")}</button>
         </div>
       </div>
       <Footer />

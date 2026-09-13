@@ -1,37 +1,17 @@
 import { useState } from "react";
 import { Header, Footer, MainLogo } from "./Home.jsx";
 import { Sound } from "../lib/sound.js";
-import { Calculator, BookOpen, Check } from "./icons.jsx";
-
-const TEST_LABELS = {
-  quantitative: [
-    { key: "quant1", title: "Quantitative Test 1" },
-    { key: "quant2", title: "Quantitative Test 2" },
-    { key: "quant3", title: "Quantitative Test 3" },
-  ],
-  verbal: [
-    { key: "verbal1", title: "Verbal Test 1" },
-    { key: "verbal2", title: "Verbal Test 2" },
-    { key: "verbal3", title: "Verbal Test 3" },
-  ],
-};
-
-const SECTION_TITLE = {
-  quantitative: "Quantitative Section",
-  verbal: "Verbal Section",
-};
-
-// Same icon used for the matching section on Home.
-const SECTION_ICON = {
-  quantitative: Calculator,
-  verbal: BookOpen,
-};
+import { Calculator, Check, SECTION_ICONS } from "./icons.jsx";
+import activeExam from "../exams/active.js";
+import { t } from "../i18n/index.js";
 
 export default function SectionSelect({ section, dark, onToggleDark, soundOn, onToggleSound, onHome, onStart }) {
-  const items = TEST_LABELS[section] || [];
-  const TileIcon = SECTION_ICON[section] || Calculator;
+  const sectionConfig = activeExam.config.sections.find((s) => s.id === section);
+  const items = sectionConfig?.tests || [];
+  const TileIcon = SECTION_ICONS[sectionConfig?.icon] || Calculator;
+  const { minutes: timerMinutes, defaultOn: timedDefault } = activeExam.config.timer;
   const [picked, setPicked] = useState(null);
-  const [timed, setTimed] = useState(false);
+  const [timed, setTimed] = useState(timedDefault);
 
   const start = () => {
     if (!picked) return;
@@ -45,17 +25,17 @@ export default function SectionSelect({ section, dark, onToggleDark, soundOn, on
       <MainLogo dark={dark} />
 
       <div className="select-title">
-        <h2>{SECTION_TITLE[section]}</h2>
-        <p className="select-sub">Choose a test to begin.</p>
+        <h2>{sectionConfig?.name}</h2>
+        <p className="select-sub">{t("section.chooseTest")}</p>
       </div>
 
       <div className="tests-grid">
-        {items.map((t) => (
-          <button key={t.key} className={`tile ${picked === t.key ? "sel" : ""}`}
-            onClick={() => { Sound.select(); setPicked(t.key); }}>
+        {items.map((test) => (
+          <button key={test.key} className={`tile ${picked === test.key ? "sel" : ""}`}
+            onClick={() => { Sound.select(); setPicked(test.key); }}>
             <span className="tile-icon"><TileIcon size={22} aria-hidden="true" /></span>
             <span className="tile-body">
-              <span className="tile-title">{t.title}</span>
+              <span className="tile-title">{test.tileTitle}</span>
             </span>
             <span className="tile-check"><Check size={13} aria-hidden="true" /></span>
           </button>
@@ -65,23 +45,23 @@ export default function SectionSelect({ section, dark, onToggleDark, soundOn, on
       <div className="select-action-panel">
         <div className="select-action-row">
           <div className="timer-toggle-group">
-            <span className="timer-toggle-caption">Timer</span>
+            <span className="timer-toggle-caption">{t("section.timer")}</span>
             <button
               type="button"
               className={`timer-toggle timer-toggle-compact ${timed ? "on" : ""}`}
               onClick={() => { Sound.tap(); setTimed((v) => !v); }}
               aria-pressed={timed}
-              aria-label="Timed test, 60 minute overall limit"
-              title="Timed test — 60 minute overall limit"
+              aria-label={t("section.timedAriaLabel", { minutes: timerMinutes })}
+              title={t("section.timedTitle", { minutes: timerMinutes })}
             >
               <span className="timer-toggle-switch" aria-hidden="true">
                 <span className="timer-toggle-knob" />
               </span>
-              <span className="timer-toggle-onoff" aria-hidden="true">{timed ? "On" : "Off"}</span>
+              <span className="timer-toggle-onoff" aria-hidden="true">{timed ? t("section.on") : t("section.off")}</span>
             </button>
           </div>
 
-          <button className="btn-primary select-start-btn" disabled={!picked} onClick={start}>Start Test</button>
+          <button className="btn-primary select-start-btn" disabled={!picked} onClick={start}>{t("section.startTest")}</button>
         </div>
       </div>
       <Footer />

@@ -1,30 +1,5 @@
-// GAT question schema + category constants.
-//
-// A question (after normalization by data/tests.js) looks like:
-//
-// {
-//   id: "GAT-QT1-001",                 // testKey-index, stable across edits
-//   section: "quantitative" | "verbal",
-//   testKey: "quant1" | "quant2" | "quant3" | "verbal1" | "verbal2" | "verbal3",
-//   order: 1,                          // 1..N, position within the test (N varies per test)
-//
-//   specificCategory: "",              // raw category from the source Word doc (unmapped)
-//   generalCategory: null,             // one of GENERAL_CATEGORIES[section]; null until the
-//                                      // specificCategory -> generalCategory mapping is supplied
-//
-//   kind: "text" | "text-passage" | "image" | "svg",
-//   prompt: [ { type: "ar"|"en"|"tex"|"block", text: "" } ],
-//   passageId: null,                   // Verbal Reading Comprehension -> data/verbal/passages-N.json
-//   image: null,                       // extracted asset path, used when kind === "image"
-//   svg: null,                         // vector diagram markup, used when kind === "svg"
-//
-//   options: [ { label: "A", text: "", tex: null } ],
-//   answerLabels: ["A", "B", "C", "D"],
-//   correctAnswer: "A",
-//
-//   sourceRef: null,                   // originating .docx + question number, for traceability
-//   reviewStatus: "mock" | "needs_qa" | "final",
-// }
+// GAT category constants — moved from the old src/data/schema.js verbatim.
+// specificCategory (the Lesson name from the source Word docs) -> generalCategory.
 
 export const GENERAL_CATEGORIES = {
   quantitative: [
@@ -46,7 +21,6 @@ export const GENERAL_CATEGORIES = {
   ],
 };
 
-// specificCategory (the Lesson name from the source Word docs) -> generalCategory.
 // Centralized so it can be inspected/changed in one place without touching
 // individual questions. Populated from Quantitative Test 1's real lessons;
 // extend as later tests introduce new lesson names.
@@ -93,13 +67,4 @@ export const SPECIFIC_TO_GENERAL = {
 
   // Miscellaneous Topics
   "Speed - Time - Distance": "Miscellaneous Topics", // judgment call — see comment above
-};
-
-export const TEST_META = {
-  quant1: { section: "quantitative", title: "Quantitative - Test 1" },
-  quant2: { section: "quantitative", title: "Quantitative - Test 2" },
-  quant3: { section: "quantitative", title: "Quantitative - Test 3" },
-  verbal1: { section: "verbal", title: "Verbal - Test 1" },
-  verbal2: { section: "verbal", title: "Verbal - Test 2" },
-  verbal3: { section: "verbal", title: "Verbal - Test 3" },
 };

@@ -27,10 +27,12 @@ export function diagnose(rows, keyFn, labelFn) {
   });
   return Object.entries(groups).map(([k, g]) => {
     const pct = g.total > 0 ? Math.round((g.correct / g.total) * 100) : 0;
-    let feedback = "Needs foundational work";
-    if (pct >= 90) feedback = "You're doing well in this area";
-    else if (pct > 0) feedback = "Needs more practice";
-    return { key: k, label: labelFn ? labelFn(k) : k, pct, feedback, ...g };
+    // "good"|"mid"|"low" — a machine-readable tier, not display text, so the
+    // UI layer can render it in the platform's active language (src/i18n).
+    let tier = "low";
+    if (pct >= 90) tier = "good";
+    else if (pct > 0) tier = "mid";
+    return { key: k, label: labelFn ? labelFn(k) : k, pct, tier, ...g };
   }).sort((a, b) => b.pct - a.pct);
 }
 

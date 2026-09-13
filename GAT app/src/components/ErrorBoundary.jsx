@@ -1,12 +1,14 @@
 import { Component } from "react";
+import { storageKey } from "../lib/storageKeys.js";
+import { locale, t } from "../i18n/index.js";
 
 // Last-resort safety net: if a render throws for any reason (e.g. a
 // corrupted saved attempt slipping past the defensive checks in
-// App.jsx/Quiz.jsx/tests.js), show a plain recoverable screen instead of
+// App.jsx/Quiz.jsx/questions.js), show a plain recoverable screen instead of
 // leaving a blank white page with no way forward. Deliberately styled with
 // inline styles, not app.css classes, so this fallback can never itself be
 // broken by whatever caused the crash.
-const ACTIVE_ATTEMPT_KEY = "leen_gat_active_attempt_v1";
+const ACTIVE_ATTEMPT_KEY = storageKey("active_attempt_v1");
 
 export default class ErrorBoundary extends Component {
   state = { hasError: false };
@@ -33,6 +35,7 @@ export default class ErrorBoundary extends Component {
     if (!this.state.hasError) return this.props.children;
     return (
       <div
+        dir={locale.direction}
         style={{
           position: "fixed", inset: 0, display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center", gap: 16, padding: 24,
@@ -41,7 +44,7 @@ export default class ErrorBoundary extends Component {
         }}
       >
         <p style={{ fontSize: "1.1rem", fontWeight: 700, maxWidth: 360, margin: 0 }}>
-          Something went wrong. Please reload to continue.
+          {t("error.message")}
         </p>
         <button
           type="button"
@@ -52,7 +55,7 @@ export default class ErrorBoundary extends Component {
             fontSize: "1rem", cursor: "pointer",
           }}
         >
-          Reload
+          {t("error.reload")}
         </button>
         <button
           type="button"
@@ -63,7 +66,7 @@ export default class ErrorBoundary extends Component {
             fontSize: ".85rem", cursor: "pointer",
           }}
         >
-          Reset Saved Attempt
+          {t("error.resetAttempt")}
         </button>
       </div>
     );

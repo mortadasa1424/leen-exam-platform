@@ -4,6 +4,7 @@ import QuestionCard from "./QuestionCard.jsx";
 import NavOverlay from "./NavOverlay.jsx";
 import { CourseFooter, getLeenLogoSrc } from "./Home.jsx";
 import { Sound } from "../lib/sound.js";
+import { t } from "../i18n/index.js";
 import { Flag, LayoutGrid, Pause, Home as HomeIcon, Sun, Moon, Volume2, VolumeX, Check, Clock } from "./icons.jsx";
 
 export default function Quiz({
@@ -99,27 +100,30 @@ export default function Quiz({
 
   const overallStr = `${String(Math.floor(overall / 60)).padStart(2, "0")}:${String(overall % 60).padStart(2, "0")}`;
   const unansweredCount = total - Object.keys(answers).length;
+  // Split around the current-question number so it can stay wrapped in <b>
+  // regardless of where the translated sentence places it.
+  const [qOfBefore, qOfAfter] = t("quiz.questionOf", { current: "QOFMARK", total }).split("QOFMARK");
   const navControls = (
     <div className="card-nav-row">
-      <button className="nav-btn" onClick={() => go(idx - 1)} disabled={idx === 0 || timeUp}>Previous</button>
+      <button className="nav-btn" onClick={() => go(idx - 1)} disabled={idx === 0 || timeUp}>{t("quiz.previous")}</button>
       {idx + 1 >= total
-        ? <button className="nav-btn primary" onClick={requestFinish} disabled={timeUp}>Submit Test</button>
-        : <button className="nav-btn primary" onClick={() => go(idx + 1)} disabled={timeUp}>Next</button>}
+        ? <button className="nav-btn primary" onClick={requestFinish} disabled={timeUp}>{t("quiz.submitTest")}</button>
+        : <button className="nav-btn primary" onClick={() => go(idx + 1)} disabled={timeUp}>{t("quiz.next")}</button>}
     </div>
   );
 
   const cardTools = (
     <>
-      <button className="quiz-tool-btn card-grid-btn mobile-only-nav-btn" onClick={() => { if (!timeUp) { Sound.tap(); setShowNav(true); } }} aria-label="View All Questions" type="button">
-        <LayoutGrid size={16} aria-hidden="true" /> View All Questions
+      <button className="quiz-tool-btn card-grid-btn mobile-only-nav-btn" onClick={() => { if (!timeUp) { Sound.tap(); setShowNav(true); } }} aria-label={t("quiz.viewAllQuestions")} type="button">
+        <LayoutGrid size={16} aria-hidden="true" /> {t("quiz.viewAllQuestions")}
       </button>
       {deadline != null && (
-        <div className={`quiz-tool-btn quiz-timer-inline mobile-only-nav-btn ${overall <= 60 ? "warn" : ""}`} aria-label="Time remaining" role="timer">
+        <div className={`quiz-tool-btn quiz-timer-inline mobile-only-nav-btn ${overall <= 60 ? "warn" : ""}`} aria-label={t("quiz.timeRemaining")} role="timer">
           <Clock size={14} aria-hidden="true" /> {overallStr}
         </div>
       )}
-      <button className={`quiz-tool-btn flag-btn compact ${marked[idx] ? "on" : ""}`} onClick={toggleMark} aria-label="Mark for Review" type="button">
-        <Flag size={16} aria-hidden="true" /> Mark for Review
+      <button className={`quiz-tool-btn flag-btn compact ${marked[idx] ? "on" : ""}`} onClick={toggleMark} aria-label={t("quiz.markForReview")} type="button">
+        <Flag size={16} aria-hidden="true" /> {t("quiz.markForReview")}
       </button>
     </>
   );
@@ -128,19 +132,19 @@ export default function Quiz({
     <div className="screen quiz screen-enter quiz-v2">
       <header className="quiz-header">
         <div className="quiz-header-left">
-          <button className="icon-btn" onClick={onHome} aria-label="Exit to home"><HomeIcon size={18} aria-hidden="true" /></button>
+          <button className="icon-btn" onClick={onHome} aria-label={t("quiz.exitToHome")}><HomeIcon size={18} aria-hidden="true" /></button>
           <img className="quiz-header-logo" src={getLeenLogoSrc(dark)} alt="Leen" />
           {testTitle && <span className="quiz-header-title">{testTitle}</span>}
         </div>
         <div className="quiz-header-center">
-          Question <b>{idx + 1}</b> of {total}
+          {qOfBefore}<b>{idx + 1}</b>{qOfAfter}
         </div>
         <div className="quiz-header-right">
           {deadline != null && <div className={`quiz-overall ${overall <= 60 ? "warn" : ""}`}>{overallStr}</div>}
-          <button className="icon-btn" onClick={() => { Sound.tap(); onToggleDark?.(); }} aria-label="Theme">
+          <button className="icon-btn" onClick={() => { Sound.tap(); onToggleDark?.(); }} aria-label={t("common.theme")}>
             {dark ? <Moon size={17} aria-hidden="true" /> : <Sun size={17} aria-hidden="true" />}
           </button>
-          <button className="icon-btn" onClick={() => { Sound.tap(); onToggleSound?.(); }} aria-label="Sound">
+          <button className="icon-btn" onClick={() => { Sound.tap(); onToggleSound?.(); }} aria-label={t("common.sound")}>
             {soundOn ? <Volume2 size={17} aria-hidden="true" /> : <VolumeX size={17} aria-hidden="true" />}
           </button>
         </div>
@@ -163,7 +167,7 @@ export default function Quiz({
           </div>
         </div>
 
-        <aside className="quiz-sidebar" aria-label="Question navigator">
+        <aside className="quiz-sidebar" aria-label={t("quiz.questionNavigator")}>
           <NavOverlay inline total={total} current={idx} answers={answers} marked={marked}
             onJump={(n) => go(n)} onSubmit={requestFinish} />
         </aside>
@@ -175,11 +179,11 @@ export default function Quiz({
       )}
 
       {paused && !timeUp && (
-        <div className="overlay" role="dialog" aria-modal="true" aria-label="Test Paused">
+        <div className="overlay" role="dialog" aria-modal="true" aria-label={t("quiz.testPaused")}>
           <div className="pause-card">
             <div className="modal-icon"><Pause size={28} aria-hidden="true" /></div>
-            <h3>Test Paused</h3>
-            <button className="btn-primary pause-continue" onClick={resumeFromPause}>Resume</button>
+            <h3>{t("quiz.testPaused")}</h3>
+            <button className="btn-primary pause-continue" onClick={resumeFromPause}>{t("quiz.resume")}</button>
           </div>
         </div>
       )}
@@ -191,18 +195,18 @@ export default function Quiz({
         // .screen container's own max-width/centering and of any ancestor
         // CSS between here and <body> — the same fix already used for
         // PopupAd's overlay (see PopupAd.jsx).
-        <div className="overlay" role="dialog" aria-modal="true" aria-label="Submit this test?">
+        <div className="overlay" role="dialog" aria-modal="true" aria-label={t("quiz.submitConfirmTitle")}>
           <div className="modal">
             <div className="modal-icon"><Check size={26} aria-hidden="true" /></div>
-            <h3>Submit this test?</h3>
+            <h3>{t("quiz.submitConfirmTitle")}</h3>
             <p>
               {unansweredCount > 0
-                ? `You have ${unansweredCount} unanswered question${unansweredCount === 1 ? "" : "s"}. You can still go back and finish before submitting.`
-                : "All questions are answered. This will end your attempt and take you to your results."}
+                ? t("quiz.submitConfirmUnanswered", { count: unansweredCount, noun: unansweredCount === 1 ? t("quiz.questionSingular") : t("quiz.questionPlural") })
+                : t("quiz.submitConfirmAllAnswered")}
             </p>
             <div className="modal-acts">
-              <button className="btn-primary" onClick={() => { Sound.tap(); finish(); }}>Submit Test</button>
-              <button className="btn-ghost" onClick={() => { Sound.tap(); setSubmitConfirm(false); }}>Continue Test</button>
+              <button className="btn-primary" onClick={() => { Sound.tap(); finish(); }}>{t("quiz.submitTest")}</button>
+              <button className="btn-ghost" onClick={() => { Sound.tap(); setSubmitConfirm(false); }}>{t("quiz.continueTest")}</button>
             </div>
           </div>
         </div>,
@@ -211,13 +215,13 @@ export default function Quiz({
       <CourseFooter />
 
       {timeUp && (
-        <div className="overlay" role="dialog" aria-modal="true" aria-label="Time's up">
+        <div className="overlay" role="dialog" aria-modal="true" aria-label={t("quiz.timeUpTitle")}>
           <div className="modal">
             <div className="modal-icon"><Clock size={26} aria-hidden="true" /></div>
-            <h3>Time's up</h3>
-            <p>Your {totalMinutes}-minute test time has ended. Your answers will now be submitted.</p>
+            <h3>{t("quiz.timeUpTitle")}</h3>
+            <p>{t("quiz.timeUpBody", { minutes: totalMinutes })}</p>
             <div className="modal-acts">
-              <button className="btn-primary" onClick={() => { Sound.tap(); finish(); }}>OK</button>
+              <button className="btn-primary" onClick={() => { Sound.tap(); finish(); }}>{t("quiz.ok")}</button>
             </div>
           </div>
         </div>

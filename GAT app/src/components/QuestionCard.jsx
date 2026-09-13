@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import katex from "katex";
-import { passages } from "../data/tests.js";
+import activeExam from "../exams/active.js";
+import { t } from "../i18n/index.js";
+
+const { passages } = activeExam;
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I"];
 
@@ -99,7 +102,7 @@ function sanitizePassageText(text) {
 function PassagePane({ passage }) {
   return (
     <div className="q-passage" dir="ltr">
-      <div className="q-passage-t">Reading Passage</div>
+      <div className="q-passage-t">{t("passage.readingPassage")}</div>
       {passage.title && <div className="q-passage-topic">{passage.title}</div>}
       <div className="q-passage-b">{sanitizePassageText(passage.passageText)}</div>
     </div>
@@ -267,7 +270,7 @@ export default function QuestionCard({
     if (i === selected) return "wrong";
     return "";
   };
-  const isMath = q.section === "quantitative" && (q.kind === "text" || q.kind === "image");
+  const isMath = q.mathLayout && (q.kind === "text" || q.kind === "image");
   const mathGroupSize = isMath ? groupOptionSizeClass(q.options || []) : null;
   const passage = q.kind === "text-en" && q.passageId ? passages[q.passageId] : null;
 
@@ -304,7 +307,7 @@ export default function QuestionCard({
   }
 
   return (
-    <div className={`card ${q.section === "quantitative" ? "math-card" : ""}`}>
+    <div className={`card ${q.mathLayout ? "math-card" : ""}`}>
       {meta}
       {tools && <div className="card-tools">{tools}</div>}
 

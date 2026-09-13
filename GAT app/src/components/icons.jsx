@@ -21,3 +21,12 @@ export {
   Eye,
   Pause,
 } from "lucide-react";
+
+import { Calculator as CalculatorIcon, BookOpen as BookOpenIcon } from "lucide-react";
+
+// Resolves an exam section's `icon` config string (e.g. "calculator") to its
+// component, so exam.config.js can stay plain data instead of importing JSX.
+export const SECTION_ICONS = {
+  calculator: CalculatorIcon,
+  bookOpen: BookOpenIcon,
+};

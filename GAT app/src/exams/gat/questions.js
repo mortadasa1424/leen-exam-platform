@@ -1,18 +1,28 @@
-// Normalizes the raw question banks into fixed-form test sets. GAT tests are
-// always the same question set in the same order for every attempt — no
-// randomization or seen-history rotation.
-import quant1Real from "./quant/test-1.json";
-import quant2Real from "./quant/test-2.json";
-import quant3Real from "./quant/test-3.json";
-import verbal1Real from "./verbal/test-1.json";
-import verbal1Passages from "./verbal/passages-1.json";
-import verbal2Real from "./verbal/test-2.json";
-import verbal2Passages from "./verbal/passages-2.json";
-import verbal3Real from "./verbal/test-3.json";
-import verbal3Passages from "./verbal/passages-3.json";
-import { TEST_META, SPECIFIC_TO_GENERAL } from "./schema.js";
+// Normalizes GAT's raw question banks into fixed-form test sets. GAT tests
+// are always the same question set in the same order for every attempt — no
+// randomization or seen-history rotation. Adapted from the original
+// src/data/tests.js: same logic, now reading section metadata (mathRendering,
+// category mapping) from exam.config.js instead of local constants.
+import quant1Real from "./data/quant/test-1.json";
+import quant2Real from "./data/quant/test-2.json";
+import quant3Real from "./data/quant/test-3.json";
+import verbal1Real from "./data/verbal/test-1.json";
+import verbal1Passages from "./data/verbal/passages-1.json";
+import verbal2Real from "./data/verbal/test-2.json";
+import verbal2Passages from "./data/verbal/passages-2.json";
+import verbal3Real from "./data/verbal/test-3.json";
+import verbal3Passages from "./data/verbal/passages-3.json";
+import config from "./exam.config.js";
 
-export { TEST_META, GENERAL_CATEGORIES } from "./schema.js";
+const { specificToGeneral } = config.categories;
+
+// Flat { [testKey]: { section, title, mathRendering } }, derived from
+// config.sections so test metadata is never duplicated in two places.
+export const testMeta = Object.fromEntries(
+  config.sections.flatMap((section) =>
+    section.tests.map((t) => [t.key, { section: section.id, title: t.title, mathRendering: Boolean(section.mathRendering) }])
+  )
+);
 
 export const passages = Object.fromEntries(
   [...verbal1Passages, ...verbal2Passages, ...verbal3Passages].map((p) => [p.id, p])
@@ -22,17 +32,18 @@ export const passages = Object.fromEntries(
 // six slots. Each test's own question count is used everywhere (quiz,
 // scoring, review, etc.) — nothing assumes a fixed length.
 // generalCategory is derived centrally from specificCategory via
-// SPECIFIC_TO_GENERAL (falling back to a question's own generalCategory for
+// specificToGeneral (falling back to a question's own generalCategory for
 // mock data, which sets it directly since it has no real specificCategory).
 function buildTestQuestions(testKey, base) {
-  const meta = TEST_META[testKey];
+  const meta = testMeta[testKey];
   return base.map((q, i) => ({
     ...q,
     id: `GAT-${testKey.toUpperCase()}-${String(i + 1).padStart(3, "0")}`,
     section: meta.section,
     testKey,
     order: i + 1,
-    generalCategory: SPECIFIC_TO_GENERAL[q.specificCategory] ?? q.generalCategory ?? null,
+    generalCategory: specificToGeneral[q.specificCategory] ?? q.generalCategory ?? null,
+    mathLayout: meta.mathRendering,
   }));
 }
 

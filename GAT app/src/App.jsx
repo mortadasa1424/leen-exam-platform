@@ -7,18 +7,32 @@ import Review from "./components/Review.jsx";
 import PerformanceReport from "./components/PerformanceReport.jsx";
 import LeadForm from "./components/LeadForm.jsx";
 import PopupAd from "./components/PopupAd.jsx";
-import { getTestQuestions, getQuestionsByIds, TEST_META } from "./data/tests.js";
+import activeExam from "./exams/active.js";
+import { locale, t } from "./i18n/index.js";
 import { Sound } from "./lib/sound.js";
 import { getStr, setStr, getJSON, setJSON, remove, getSessionStr, setSessionStr } from "./lib/storage.js";
-import { DEFAULT_TEST_MINUTES, WHATSAPP_URL } from "./config/marketing.js";
+import { storageKey } from "./lib/storageKeys.js";
 import { FaWhatsapp } from "react-icons/fa";
 import "./styles/app.css";
 
+const { getTestQuestions, getQuestionsByIds, testMeta: TEST_META } = activeExam;
+const { minutes: DEFAULT_TEST_MINUTES } = activeExam.config.timer;
+const { whatsappUrl: WHATSAPP_URL } = activeExam.config.marketing;
+const { enabled: LEAD_CAPTURE_ENABLED } = activeExam.config.leadCapture;
+
+// Platform UI language/direction — set once at startup, before first paint,
+// so there's no LTR->RTL flash. Independent from question-content direction,
+// which QuestionCard derives per-question from its own text.
+if (typeof document !== "undefined") {
+  document.documentElement.lang = locale.language;
+  document.documentElement.dir = locale.direction;
+}
+
 const LS = {
-  theme: "leen_gat_theme",
-  lead: "leen_gat_lead_completed",
-  active: "leen_gat_active_attempt_v1",
-  openAdShown: "leen_gat_open_ad_shown",
+  theme: storageKey("theme"),
+  lead: storageKey("lead_completed"),
+  active: storageKey("active_attempt_v1"),
+  openAdShown: storageKey("open_ad_shown"),
 };
 
 export default function App() {
@@ -103,7 +117,7 @@ export default function App() {
   const requestStart = (testKey, timed) => {
     const meta = TEST_META[testKey];
     const intent = { testKey, section: meta.section, timed, minutes: DEFAULT_TEST_MINUTES, testTitle: meta.title };
-    if (!leadDone()) { setPending(intent); setScreen("lead"); return; }
+    if (LEAD_CAPTURE_ENABLED && !leadDone()) { setPending(intent); setScreen("lead"); return; }
     beginAttempt(intent);
   };
 
@@ -194,7 +208,7 @@ export default function App() {
     <div className="app-root">
       <div className="aurora"><span className="b1" /><span className="b2" /><span className="b3" /><span className="b4" /></div>
       <div className="grain" />
-      <a className="wa-float global-wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
+      <a className="wa-float global-wa" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer" aria-label={t("whatsapp.ariaLabel")}>
         <FaWhatsapp size={26} aria-hidden="true" />
       </a>
 
@@ -202,8 +216,7 @@ export default function App() {
         <Home
           dark={dark} onToggleDark={() => setDark((d) => !d)}
           soundOn={soundOn} onToggleSound={() => setSoundOn((s) => !s)}
-          onPickQuant={() => { setPickedSection("quantitative"); setScreen("select"); }}
-          onPickVerbal={() => { setPickedSection("verbal"); setScreen("select"); }}
+          onPickSection={(id) => { setPickedSection(id); setScreen("select"); }}
         />
       )}
 
@@ -242,7 +255,7 @@ export default function App() {
           dark={dark} onToggleDark={() => setDark((d) => !d)}
           soundOn={soundOn} onToggleSound={() => setSoundOn((s) => !s)}
           onHome={() => askHomeReturn("results")}
-          onReport={(res) => { setReportRes(res); setScreen("report"); }}
+          onReport={(res) => { if (activeExam.config.performance?.byCategory) { setReportRes(res); setScreen("report"); } }}
           onReview={(res) => { setReviewRes(res); setScreen("review"); }}
           onPracticeMistakes={requestPracticeMistakes}
         />
@@ -271,18 +284,18 @@ export default function App() {
       {adPopup && <PopupAd variant={adPopup} onClose={() => setAdPopup(null)} />}
 
       {resumePrompt && (
-        <Modal title="Resume Attempt" body={`You left ${resumePrompt.testTitle} unfinished. Would you like to continue your attempt?`}
-          yes="Resume" no="Start Over" onYes={doResume} onNo={discardResume} />
+        <Modal title={t("modals.resumeTitle")} body={t("modals.resumeBody", { testTitle: resumePrompt.testTitle })}
+          yes={t("modals.resumeYes")} no={t("modals.resumeNo")} onYes={doResume} onNo={discardResume} />
       )}
       {leaveConfirm && (
-        <Modal title="Leave the test?" yes="Yes" no="No" onYes={confirmLeave} onNo={() => setLeaveConfirm(false)} />
+        <Modal title={t("modals.leaveTitle")} yes={t("common.yes")} no={t("common.no")} onYes={confirmLeave} onNo={() => setLeaveConfirm(false)} />
       )}
       {homeReturnConfirm && (
-        <Modal title="Return to the main menu?" yes="Yes" no="No" onYes={confirmHomeReturn} onNo={() => setHomeReturnConfirm(null)} />
+        <Modal title={t("modals.homeReturnTitle")} yes={t("common.yes")} no={t("common.no")} onYes={confirmHomeReturn} onNo={() => setHomeReturnConfirm(null)} />
       )}
       {practiceMistakesPrompt && (
-        <Modal title="Retake this test?" body="This will replay the questions you left unanswered or answered incorrectly."
-          bodyClassName="modal-comment" yes="Yes" no="No" onYes={confirmPracticeMistakes} onNo={() => setPracticeMistakesPrompt(null)} />
+        <Modal title={t("modals.practiceMistakesTitle")} body={t("modals.practiceMistakesBody")}
+          bodyClassName="modal-comment" yes={t("common.yes")} no={t("common.no")} onYes={confirmPracticeMistakes} onNo={() => setPracticeMistakesPrompt(null)} />
       )}
     </div>
   );

@@ -1,5 +1,6 @@
 import { X, LayoutGrid } from "./icons.jsx";
 import { Sound } from "../lib/sound.js";
+import { t } from "../i18n/index.js";
 
 // Shared question-state + grid rendering for both the mobile overlay (a
 // modal sheet opened via "View All Questions") and the desktop inline
@@ -22,20 +23,20 @@ export default function NavOverlay({ total, current, answers, marked, onJump, on
       onClick={inline ? undefined : (e) => e.stopPropagation()}
       role={inline ? undefined : "dialog"}
       aria-modal={inline ? undefined : "true"}
-      aria-label={inline ? undefined : "Navigate Questions"}
+      aria-label={inline ? undefined : t("nav.navigateQuestions")}
     >
       <div className="navpanel-head">
-        <h3><LayoutGrid size={18} aria-hidden="true" /> {inline ? "Navigator" : "Navigate Questions"}</h3>
+        <h3><LayoutGrid size={18} aria-hidden="true" /> {inline ? t("nav.navigator") : t("nav.navigateQuestions")}</h3>
         {!inline && (
-          <button onClick={() => { Sound.tap(); onClose(); }} aria-label="Close"><X size={18} /></button>
+          <button onClick={() => { Sound.tap(); onClose(); }} aria-label={t("common.close")}><X size={18} /></button>
         )}
       </div>
       <div className="nav-legend">
-        <span><i className="lg-cur" /> Current</span>
-        <span><i className="lg-ans" /> Answered</span>
-        <span><i className="lg-mrk" /> Marked</span>
-        <span><i className="lg-ans-mrk" /> Answered + Marked</span>
-        <span><i className="lg-emp" /> Empty</span>
+        <span><i className="lg-cur" /> {t("nav.current")}</span>
+        <span><i className="lg-ans" /> {t("nav.answered")}</span>
+        <span><i className="lg-mrk" /> {t("nav.marked")}</span>
+        <span><i className="lg-ans-mrk" /> {t("nav.answeredMarked")}</span>
+        <span><i className="lg-emp" /> {t("nav.empty")}</span>
       </div>
       <div className="nav-grid">
         {Array.from({ length: total }).map((_, i) => (
@@ -45,10 +46,10 @@ export default function NavOverlay({ total, current, answers, marked, onJump, on
       </div>
       {inline && (
         <div className="navpanel-summary">
-          <div className="navpanel-stat"><b>{answeredCount}</b> Answered</div>
-          <div className="navpanel-stat"><b>{remainingCount}</b> Remaining</div>
+          <div className="navpanel-stat"><b>{answeredCount}</b> {t("nav.answered")}</div>
+          <div className="navpanel-stat"><b>{remainingCount}</b> {t("nav.remaining")}</div>
           {onSubmit && (
-            <button className="btn-primary navpanel-submit" onClick={() => { Sound.tap(); onSubmit(); }}>Submit Test</button>
+            <button className="btn-primary navpanel-submit" onClick={() => { Sound.tap(); onSubmit(); }}>{t("quiz.submitTest")}</button>
           )}
         </div>
       )}
