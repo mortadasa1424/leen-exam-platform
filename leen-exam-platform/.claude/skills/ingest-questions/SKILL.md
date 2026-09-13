@@ -211,6 +211,18 @@ Phase A ambiguity was actually resolved before being written as
 This is **not** a substitute for `/validate-exam`'s eventual full-platform
 audit — it only checks what this specific ingestion touched.
 
+### Optional: update the exam documentation file
+
+If `docs/exams/<EXAM-ID>.md` already exists (created by `/create-exam` — see
+`docs/PLATFORM.md`'s "Exam documentation convention"), you may, after a
+successful ingestion, make a small targeted edit to its clearly operational
+fields — ingestion status and per-test question counts — reflecting what was
+actually just imported. Never rewrite the whole file and never touch any
+other section (config, marketing, locale, etc.) — those aren't this Skill's
+to own. If the file doesn't exist, skip this silently; do not create it
+(that's `/create-exam`'s job), and don't let this step block or complicate
+the ingestion itself.
+
 ## Platform limitations — report, don't patch
 
 If the source needs something the current schema/renderer genuinely can't
@@ -269,8 +281,10 @@ an inspection/plan), report:
     `"final"`), and why.
 12. Validation script result (pass/fail, error/warning counts) and the
     manual-check results.
-13. Current `git status`.
-14. Next recommended step: `/validate-exam` (once it exists) or manual QA
+13. Whether `docs/exams/<EXAM-ID>.md` was updated (ingestion status/counts)
+    or left untouched (file doesn't exist, or update was skipped).
+14. Current `git status`.
+15. Next recommended step: `/validate-exam` (once it exists) or manual QA
     in the running app.
 
 Do not commit or push. Do not run destructive git commands.

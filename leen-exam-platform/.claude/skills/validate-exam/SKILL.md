@@ -57,7 +57,11 @@ the user means).
 - Read-only by default. The only script this Skill runs
   (`scripts/validate-exam-module.mjs`) never writes anything — it imports
   `exam.config.js` (and sibling exams' `exam.config.js`, read-only) and
-  reads files with `fs`.
+  reads files with `fs`. The one narrow, optional exception is a small
+  targeted edit to `docs/exams/<EXAM-ID>.md`'s validation status fields (see
+  "Optional: update the exam documentation file" below) — never a required
+  part of validation, and never anything beyond that one file's status
+  fields.
 - Never modify: another exam's files, GAT's files (unless GAT is the actual
   target), `src/exams/active.js`, `src/exams/registry.js`, `src/App.jsx`,
   anything under `src/components/`, `src/lib/`, `src/styles/`, `src/i18n/`,
@@ -235,6 +239,16 @@ Assemble this yourself from the scripts' own `--json` output plus the
 build/runtime results — the scripts don't write this combined file
 themselves.
 
+### Optional: update the exam documentation file
+
+If `docs/exams/<EXAM-ID>.md` already exists (see `docs/PLATFORM.md`'s "Exam
+documentation convention"), you may, after this run, make a small targeted
+edit updating its validation status/date and question-count fields to match
+this run's results. Never rewrite the whole file, never touch any other
+section, and skip this silently if the file doesn't exist or if it would
+complicate an otherwise-clean read-only run — this is a best-effort
+convenience, not a required output of validation.
+
 ## Scripts
 
 - `scripts/validate-exam-module.mjs` — this Skill's own deterministic
@@ -275,7 +289,8 @@ section's structure, plus:
 - Confirmation that no tracked file (`src/exams/active.js`,
   `src/exams/registry.js`, or otherwise) was left changed — Level 9's
   temporary activation is env-var-only, so there should be nothing to
-  restore.
+  restore — other than `docs/exams/<EXAM-ID>.md`'s status fields, if that
+  optional update was made; state plainly whether it was.
 - Current `git status`.
 - The exact recommended next step (usually: fix BLOCKERs and re-run;
   or, if clean, "run manual visual QA using the Level 9 checklist, then

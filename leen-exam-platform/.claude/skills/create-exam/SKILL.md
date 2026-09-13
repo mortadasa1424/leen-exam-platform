@@ -233,7 +233,43 @@ exam's config, regardless of any of the above.
   block in `exam.config.js`, which is what actually takes effect once the
   exam is active, and doesn't edit `index.html` itself.
 
-## Step 4 — Validate
+## Step 4 — Create the exam documentation file
+
+Create `docs/exams/<EXAM-ID>.md`, where `<EXAM-ID>` is the exam's `config.id`
+**upper-cased** (e.g. `saat` → `docs/exams/SAAT.md`) — see
+`docs/PLATFORM.md`'s "Exam documentation convention" for the naming rule and
+required fields in full. `docs/exams/GAT.md` is a filled-out example.
+
+Populate it **only** from what was actually collected in Step 1 / written in
+Steps 2–3 — do not fabricate anything not yet known:
+
+- Exam ID, full name, short name
+- Locale / direction
+- Sections / tests (ids, keys, titles)
+- Timer settings (minutes, default on/off)
+- Category-performance setting (`byCategory`; if `true`, note whether the
+  taxonomy is a real first pass or intentionally sparse/placeholder)
+- Source document location: `tests-source/<exam-id>/<section-id>/`
+  (state plainly that these folders are still empty)
+- Runtime asset location: `public/questions/<exam-id>/` (empty namespace,
+  subfolders created on demand by `/ingest-questions`)
+- Marketing asset location: `public/assets/marketing/<exam-id>/` — note the
+  config paths that were set (Step 2d) and that the real video/banner files
+  still need to be added there
+- Lead-capture status (enabled/disabled, fields configured)
+- Deployment `VITE_EXAM_ID`: `<exam-id>` — state plainly that no deployment
+  has this set yet; registering the exam (Step 3) is not the same as
+  activating it
+- Ingestion status: **pending**
+- Validation status: **pending**
+
+If `docs/exams/<EXAM-ID>.md` already exists, stop and ask before touching it
+— same as the collision check in "Before doing anything"; never silently
+overwrite an existing exam doc. Skip this step entirely only if the user is
+explicitly scaffolding a throwaway/test exam rather than a real one — say so
+in the final report if you skip it.
+
+## Step 5 — Validate
 
 Without changing any deployment's active exam:
 
@@ -268,13 +304,13 @@ Without changing any deployment's active exam:
    `VITE_EXAM_ID=<exam-id>` set as above, and report the result.
 4. Report any validation failures plainly; don't paper over them.
 
-## Step 5 — Report
+## Step 6 — Report
 
 At the end, report:
 - Exam ID/name created, and the exact file list created (across all four
-  roots — `src/exams/<exam-id>/`, `tests-source/<exam-id>/`,
-  `public/questions/<exam-id>/`, `public/assets/marketing/<exam-id>/` — not
-  just the module).
+  scaffolding roots — `src/exams/<exam-id>/`, `tests-source/<exam-id>/`,
+  `public/questions/<exam-id>/`, `public/assets/marketing/<exam-id>/` —
+  plus `docs/exams/<EXAM-ID>.md` from Step 4, if created).
 - Collision check result: which of the four roots were checked, and
   confirmation none pre-existed (or, if the user chose to proceed despite a
   collision, exactly what that decision was).
@@ -299,6 +335,8 @@ At the end, report:
 - Runtime metadata (`meta.title`/`description`/`themeColor`) configured.
 - Lead capture status (enabled/disabled, fields configured).
 - Question ingestion status: **not done** — placeholder `[]` files only.
+- Exam documentation: whether `docs/exams/<EXAM-ID>.md` was created (or, if
+  skipped as a throwaway/test exam, say so explicitly).
 - Validation/build result.
 - Whether the exam was registered in `src/exams/registry.js` (should be
   "yes" — required by Step 3) and whether it is *active* anywhere (should

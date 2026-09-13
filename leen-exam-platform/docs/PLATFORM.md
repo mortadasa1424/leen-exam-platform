@@ -3,10 +3,10 @@
 This app was built as a single-exam GAT practice app and then refactored into
 a reusable platform: the quiz/results/review engine is generic, and GAT is
 its first "exam module." This doc explains that split so a future exam
-(SAAT, STEP, ...) can be added without touching the engine. For GAT's own
-product details (question format, marketing config, lead capture), see the
-main [README.md](../README.md) — that document is left as-is as the
-GAT-specific reference.
+(SAAT, STEP, ...) can be added without touching the engine. The main
+[README.md](../README.md) covers the platform at a high level; for GAT's own
+product details (question format, marketing config, lead capture), see
+[docs/exams/GAT.md](exams/GAT.md).
 
 ## Architecture
 
@@ -264,6 +264,55 @@ new exam. If one does, that's a sign of an exam assumption that leaked into
 core — treat it the same way `q.section === "quantitative"` was replaced
 with `q.mathLayout` during this refactor: pull the capability into config,
 not a hardcoded name check.
+
+## Exam documentation convention
+
+Every real (production) exam gets its own doc at:
+
+```
+docs/exams/<EXAM-ID>.md
+```
+
+where `<EXAM-ID>` is the exam's `config.id` **upper-cased** (e.g. `gat` →
+`docs/exams/GAT.md`, `saat` → `docs/exams/SAAT.md`). This is the one
+consistent naming rule — don't invent a different casing or a
+name-instead-of-id variant for a new exam.
+
+An exam doc should contain:
+
+- Exam ID, full name, short name
+- Locale / direction
+- Sections / tests (ids, keys, titles)
+- Timer settings (minutes, default on/off)
+- Category-performance setting (`byCategory` true/false, and taxonomy
+  status/structure if true)
+- Source document location (`tests-source/<exam-id>/...`)
+- Runtime asset location (`public/questions/<exam-id>/...`)
+- Marketing asset location (`public/assets/marketing/<exam-id>/...`) and
+  config details
+- Lead-capture status (enabled/disabled, fields configured)
+- Deployment `VITE_EXAM_ID` value (and whether any live deployment actually
+  has it set — registering an exam is not the same as activating it)
+- Any exam-specific ingestion/source rules or implementation notes
+
+See [docs/exams/GAT.md](exams/GAT.md) for a filled-out example.
+
+**Who writes it, and when:**
+
+- `/create-exam` creates this file for every real exam it scaffolds,
+  populated only from information collected during that run — config,
+  expected tests, source/marketing paths, ingestion status: pending,
+  validation status: pending. It never fabricates a field it wasn't given.
+- `/ingest-questions` may, after a successful ingestion, update only
+  clearly operational fields already in the doc (ingestion status, per-test
+  question counts) — a small, targeted edit, never a full rewrite, and only
+  if the file already exists. It does not create the file.
+- `/validate-exam` may, after a run, update the validation status/date and
+  question-count fields the same way — targeted, best-effort, never
+  mandatory. If updating the doc would complicate either Skill's normal
+  flow, skipping the update is preferred over a fragile automated edit.
+- Nothing else in the pipeline touches these docs automatically. A
+  hand-maintained correction is always fine.
 
 ## Platform language (locale / i18n)
 

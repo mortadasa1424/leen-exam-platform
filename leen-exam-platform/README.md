@@ -1,28 +1,117 @@
-# Leen GAT Practice App
+# Leen Exam Platform
 
-> This app is the first exam built on a reusable exam platform — the
-> quiz/results/review engine is generic, and GAT is a config + dataset on top
-> of it. See [docs/PLATFORM.md](docs/PLATFORM.md) for that architecture and
-> how to add another exam. This document stays focused on GAT specifically.
+A reusable React/Vite exam practice platform for creating and deploying
+multiple Leen exam products from one codebase.
 
-A free practice app for the GAT exam: Quantitative and Verbal sections, each
-with three fixed-form tests. Built as a single-page React app — no backend of
-its own, aside from a Google Apps Script webhook that captures leads before a
-test starts.
+## Overview
 
-## Tech stack
+The quiz/results/review engine is generic — screens, scoring, timers,
+storage, and styling contain zero exam-specific logic. Each exam (GAT today;
+SAAT, STEP, ... in the future) is a self-contained **exam module**: a config
+object plus a question dataset. One deployment serves exactly one exam,
+selected at build time via a `VITE_EXAM_ID` env var, so the same repo can
+back several independent Netlify sites, each with its own live exam.
 
-- **React 18** + **Vite 5** (`@vitejs/plugin-react`)
-- Plain CSS (`src/styles/app.css`), no CSS framework
-- [KaTeX](https://katex.org/) for math rendering
-- [lucide-react](https://lucide.dev/) for icons, `react-icons` for the
-  WhatsApp glyph
+For the full architecture — the exam-module contract, the registry, locale/
+RTL handling, category-performance reporting, and everything else in depth —
+see **[docs/PLATFORM.md](docs/PLATFORM.md)**. This README stays high-level;
+that doc is the detailed reference.
+
+## Architecture
+
+- **React 18** + **Vite 5** (`@vitejs/plugin-react`), plain CSS
+  (`src/styles/app.css`), no CSS framework.
 - No router — screens are plain state in `App.jsx` (`home | select | lead |
-  quiz | results | report | review`), not URL routes
-- No backend — lead capture posts to a Google Apps Script Web App that writes
-  to a Google Sheet (see [Google Sheets lead integration](#google-sheets-lead-integration))
+  quiz | results | report | review`), not URL routes.
+- No shared backend — each exam optionally posts lead-capture data to its
+  own webhook; there is no database or API server in this repo.
+- [KaTeX](https://katex.org/) is available platform-wide for math rendering
+  (opt-in per section via `mathRendering`); [lucide-react](https://lucide.dev/)
+  provides section icons.
+- `App.jsx`, `src/components/`, and `src/lib/` are 100% generic — they only
+  ever read from the *active* exam module, never a hardcoded exam name.
 
-## Install & run
+## Repository structure
+
+```
+leen-exam-platform/
+├── index.html                     entry HTML; loads /lead-config.js then main.jsx
+├── src/
+│   ├── main.jsx                    React root
+│   ├── App.jsx                     screen state machine (generic)
+│   ├── components/                 one file per screen/UI piece (generic)
+│   ├── config/brand.js             Leen company identity — shared, not per-exam
+│   ├── i18n/                       platform UI dictionaries (en, ar)
+│   ├── lib/                        scoring, sound, storage helpers (generic)
+│   ├── styles/app.css              all app styling (generic)
+│   └── exams/
+│       ├── active.js                the one stable import path components use
+│       ├── registry.js              every exam module this build knows about
+│       └── <exam-id>/               one exam's config + question data (e.g. gat/)
+├── public/
+│   ├── questions/<exam-id>/         question images, namespaced per exam
+│   └── assets/marketing/<exam-id>/  promo video/banner, namespaced per exam
+├── tests-source/<exam-id>/          original source docs per exam (provenance only)
+├── docs/
+│   ├── PLATFORM.md                  detailed architecture reference
+│   └── exams/<EXAM-ID>.md           one doc per exam (GAT.md, future SAAT.md, STEP.md)
+├── .claude/skills/                  create-exam, ingest-questions, validate-exam
+└── netlify.toml, public/_headers, public/_redirects   Netlify deploy config
+```
+
+## Exam module concept
+
+Every exam lives under `src/exams/<exam-id>/` and exports one object shaped
+to a fixed contract: `config` (sections/tests, timer, locale, marketing,
+lead capture, optional category taxonomy), `testMeta`, question accessors,
+and (if applicable) `passages`. The generic engine only ever imports this
+via `src/exams/active.js`. See PLATFORM.md's
+["The exam-module contract"](docs/PLATFORM.md#the-exam-module-contract) for
+the full field-by-field shape.
+
+GAT is the first exam built on this platform — see
+**[docs/exams/GAT.md](docs/exams/GAT.md)** for its sections, question
+counts, category structure, and exam-specific notes.
+
+## Adding a new exam
+
+Run **`/create-exam`** (a Claude Code Skill —
+`.claude/skills/create-exam/`). It scaffolds the runtime module
+(`src/exams/<id>/`), the source-document folders (`tests-source/<id>/`),
+the question-asset namespace (`public/questions/<id>/`), the marketing
+folder (`public/assets/marketing/<id>/`), registers the exam in
+`src/exams/registry.js`, and creates its `docs/exams/<EXAM-ID>.md` doc. It
+never touches the generic engine, never edits another exam's files, and
+never sets any deployment's `VITE_EXAM_ID` — registering an exam makes it
+*available*, not *live*.
+
+See PLATFORM.md's ["Adding a future exam"](docs/PLATFORM.md#adding-a-future-exam)
+for the underlying steps if doing this by hand.
+
+## Question ingestion workflow
+
+Run **`/ingest-questions`** (`.claude/skills/ingest-questions/`) to import
+real questions — primarily from `.docx` source files — into an exam module
+already scaffolded by `/create-exam`. It prioritizes source fidelity over
+speed: it never invents, corrects, infers, reorders, omits, or rewrites
+question content, and stops to ask whenever a source is ambiguous.
+
+## Validation workflow
+
+Run **`/validate-exam`** (`.claude/skills/validate-exam/`) as the final
+pre-deployment audit of one exam: config/contract, question data,
+cross-test/cross-section consistency, assets, localization, optional-feature
+wiring, storage safety, and the production build. It's read-only by default
+and answers one question — is this exam complete, internally consistent,
+buildable, and ready for manual QA/deployment?
+
+The pipeline end to end:
+
+```
+/create-exam → /ingest-questions → /validate-exam → manual visual QA → commit/push → deploy
+```
+
+## Local development
 
 ```bash
 npm install
@@ -31,150 +120,75 @@ npm run build     # production build -> dist/
 npm run preview   # serve the production build locally
 ```
 
-Requires Node.js (any version compatible with Vite 5 / modern npm).
+Requires Node.js (any version compatible with Vite 5 / modern npm). No
+`.env` file is required for local dev — `VITE_EXAM_ID` defaults to `gat`
+when unset (see below).
 
-## Project structure
+## Selecting an exam with VITE_EXAM_ID
 
-```
-leen-exam-platform/
-├── index.html                # entry HTML; loads /lead-config.js then main.jsx
-├── src/
-│   ├── main.jsx               # React root
-│   ├── App.jsx                # screen state machine, attempt/resume/lead flow (generic)
-│   ├── components/            # one file per screen/UI piece (Home, Quiz, Results, ...) — generic
-│   ├── config/brand.js        # Leen company logo/name — shared across every exam, not GAT-specific
-│   ├── exams/                 # exam modules — see docs/PLATFORM.md
-│   │   ├── active.js           # which exam is live (currently GAT)
-│   │   └── gat/                # GAT's config, category map, question loader, and datasets
-│   ├── lib/                   # scoring, sound cues, localStorage helpers (generic)
-│   └── styles/app.css         # all app styling (generic)
-├── public/                    # static assets served as-is (images, flags, question images)
-├── tests-source/              # original .docx source documents for the six datasets (reference only)
-├── docs/PLATFORM.md           # reusable-platform architecture guide
-└── netlify.toml, public/_headers, public/_redirects   # Netlify deploy config
+Which exam a build serves is controlled entirely by the `VITE_EXAM_ID`
+build-time environment variable, looked up against `src/exams/registry.js`:
+
+```bash
+VITE_EXAM_ID=gat npm run dev              # bash/macOS/Linux
+$env:VITE_EXAM_ID="gat"; npm run dev      # PowerShell
 ```
 
-## Question datasets (production data — do not edit content)
+Omit it for the same result — `gat` is the default. An unregistered id
+throws immediately at runtime, listing the valid ids, rather than silently
+falling back to GAT. See PLATFORM.md's
+["Exam registry"](docs/PLATFORM.md#exam-registry) for the full selection
+logic and behavior table.
 
-The six approved datasets live in:
-
-- `src/exams/gat/data/quant/test-1.json`, `test-2.json`, `test-3.json`
-- `src/exams/gat/data/verbal/test-1.json`, `test-2.json`, `test-3.json` (+
-  matching `passages-1/2/3.json` for Reading Comprehension passages)
-
-`src/exams/gat/categories.js` documents the question shape and the
-`specificCategory -> generalCategory` mapping used for the Performance
-report. `src/exams/gat/questions.js` normalizes the raw JSON into
-fixed-order test sets at load time (namespacing ids, attaching
-`generalCategory`/`mathLayout`, etc.) — **this is where question content is
-loaded and shaped, never edit question text/answers/categories directly in
-code.**
-
-Question images referenced by these datasets live under
-`public/questions/gat/quantitative/test-N/...` — paths in the JSON are
-absolute (`/questions/...`) and resolved against `public/` at build time.
-The original
-`.docx` source documents used to author the datasets are kept in
-`tests-source/` for reference; they are not read by the app at runtime.
-
-Treat all six datasets as read-only content. If you must move them, keep
-their content byte-for-byte identical and update the imports in
-`src/exams/gat/questions.js`.
-
-## Marketing configuration
-
-All marketing/promo values are centralized in the `marketing` block of
-`src/exams/gat/exam.config.js`:
-
-- `courseUrl` — the GAT course link (built from a base URL + UTM tags in the
-  same file)
-- `whatsappNumber` / `whatsappUrl` — international format, no `+` or spaces
-- `promoVideo` / `footerBanner` — paths to the popup ad video and footer
-  banner image (`footerBanner: null` disables that placement and falls back
-  to a plain text footer)
-- `copy` — UI strings that name the exam/course (footer aria-labels, alt
-  text, help-link text), kept alongside the links they go with
-- the exam's `timer.minutes` field (also in `exam.config.js`) is the single
-  overall timer length used by every timed test (60 minutes)
-
-To swap a promo asset, drop the new file in `public/assets/marketing/` and
-point the relevant `marketing` key at it — no other code changes needed. See
-[docs/PLATFORM.md](docs/PLATFORM.md) for how this fits into the wider
-exam-config schema.
-
-## Google Sheets lead integration
-
-Before starting a test, a student fills a short lead form (`LeadForm.jsx`):
-name (optional), phone, grade level. On submit, the frontend POSTs
-form-encoded data to the URL in `window.LEEN_GAT_GOOGLE_SHEETS_WEBHOOK_URL`,
-set in `public/lead-config.js`.
-
-- The request uses `mode: "no-cors"`, so the response is opaque — the
-  frontend cannot verify the row was actually written, only that the
-  request didn't throw. If you need real delivery confirmation, that
-  requires changing the endpoint to a CORS-enabled response.
-- The receiving Apps Script project's source lives in
-  `../google-apps-script/Code.gs` (outside this app, since it's deployed by
-  pasting into the Apps Script editor, not built by this repo). It validates
-  `phone` and `grade_level` (must be one of the four allowed labels) before
-  writing a row.
-- This is a public POST endpoint by design (that's how Apps Script Web Apps
-  work) — anyone with the URL can POST to it. There's no secret to protect;
-  the Apps Script side validates shape, not identity. If spam becomes a
-  problem, add rate-limiting/anti-abuse logic in `Code.gs` (e.g. a shared
-  request token, or Google's reCAPTCHA), not in the frontend.
-
-## Timer & attempt persistence
-
-Everything is stored client-side in `localStorage`/`sessionStorage`
-(`src/lib/storage.js`), scoped under `leen_gat_*` keys:
-
-- **Timer**: student-toggled per attempt (default off). When on, a single
-  60-minute deadline (`Date.now() + minutes * 60000`) is stored once and
-  never reset — remaining time is always recomputed as `deadline - now()`,
-  so refreshing or leaving the tab can't grant extra time.
-- **Active attempt**: question ids, in-progress answers/marks, and the
-  deadline are saved on every change, so an interrupted attempt can be
-  resumed (`Resume` / `Start Over` prompt shown on next load).
-- **One-time flags**: lead-form completion and the theme choice persist
-  across sessions (`localStorage`); the "shown once per browser session"
-  promo popup uses `sessionStorage` so it re-appears on the next visit.
-
-No attempt data is sent anywhere — it only leaves the browser via the lead
-form webhook above.
-
-## Environment / configuration requirements
-
-There are no `.env` files or build-time secrets. The only external
-configuration is:
-
-- `public/lead-config.js` — the Google Sheets webhook URL (see above)
-- `src/exams/gat/exam.config.js` — course link, WhatsApp number, promo assets
-
-Both are plain static values checked into the repo; there is nothing here
-that a build step injects. If a per-environment (staging vs. production)
-webhook URL is ever needed, swap `public/lead-config.js` at deploy time
-rather than hardcoding a second value in source.
-
-## Deployment
+## Deployment model
 
 Configured for Netlify (`netlify.toml`): `npm run build`, publish `dist/`,
-SPA fallback to `index.html`. `public/_headers` and `public/_redirects`
-duplicate the same rules for platforms that read those files instead of
-`netlify.toml` — keep both in sync if you change caching/redirect behavior.
+SPA fallback to `index.html` (`public/_headers`/`public/_redirects`
+duplicate the same rules for platforms that read those instead). One
+Netlify site per exam, all building from the same repo/branch — the only
+difference between sites is each one's own `VITE_EXAM_ID` environment
+variable. Setting/changing a live site's `VITE_EXAM_ID` is a deliberate,
+manual deploy-time decision for whoever owns that site — no Skill or build
+step does this automatically.
 
-## Maintenance notes
+## Claude Code Skills
 
-- No test suite or linter is currently configured. `npm run build` is the
-  main correctness check before deploying.
-- The bundled JS is ~615 KB (~170 KB gzipped), mostly KaTeX + the app code.
-  Vite will warn about the chunk size on build; this is expected and not a
-  regression unless it grows significantly further.
-- Known dependency note: `vite`'s bundled `esbuild` has a moderate
-  dev-server-only advisory (arbitrary requests to the dev server can read
-  its response) — it does not affect the production build. Fixing it
-  requires a Vite 8 major upgrade; left alone intentionally for this
-  release. Re-evaluate before the next major version bump.
-- `COURSE_URL_BASE` in `src/exams/gat/exam.config.js` is still marked `TODO`
-  pending the final GAT course URL from Leen — update it there, not at the
-  call sites. `WHATSAPP_NUMBER` is already the confirmed, live number.
+| Skill | Purpose |
+|---|---|
+| `/create-exam` | Scaffold a new exam's complete filesystem structure and register it |
+| `/ingest-questions` | Import real questions from `.docx` sources into an exam module |
+| `/validate-exam` | Run the final pre-deployment audit of one exam |
+
+Each Skill's own `SKILL.md` (under `.claude/skills/<name>/`) is the
+authoritative instructions; this table is just an index.
+
+## Source document conventions
+
+Original source documents (primarily `.docx`) live under
+`tests-source/<exam-id>/<section-id>/` — one folder per section, files flat
+inside it. This tree is provenance only: it's never read by the running
+app, and it exists so a question's original wording/formatting can always be
+checked against what was ingested.
+
+## Runtime asset conventions
+
+- **Question images**: `public/questions/<exam-id>/<section-id>/<test-key>/...`,
+  created on demand by `/ingest-questions` (not pre-built). Referenced from
+  question JSON via absolute paths (`/questions/...`), resolved against
+  `public/` at build time.
+- **Marketing assets** (promo video, footer banner): `public/assets/marketing/<exam-id>/...`.
+  GAT's own files are a pre-refactor exception living flat at
+  `public/assets/marketing/` — see [docs/exams/GAT.md](docs/exams/GAT.md);
+  every future exam uses the namespaced form.
+- **Brand assets** (Leen logo, flags): `public/assets/brand/` — shared
+  across every exam, not namespaced.
+
+## Documentation links
+
+- **[docs/PLATFORM.md](docs/PLATFORM.md)** — detailed architecture: the
+  exam-module contract, the registry/selection logic, locale/RTL handling,
+  category-performance reporting, and the exam-documentation convention.
+- **[docs/exams/GAT.md](docs/exams/GAT.md)** — GAT's exam-specific
+  documentation.
+- Future exams: `docs/exams/SAAT.md`, `docs/exams/STEP.md`, ... one file per
+  exam, created automatically by `/create-exam`.
