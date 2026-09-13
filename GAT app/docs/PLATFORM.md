@@ -63,8 +63,13 @@ this (see `src/exams/gat/index.js` for the reference implementation):
     performance: { byCategory },               // whether category-based reporting UI exists at all
     branding: { heroTitle, heroLede },        // exam-specific Home copy
     locale: { language, direction },           // platform UI language — "en"/"ltr" or "ar"/"rtl"
+    meta: { title, description, themeColor }, // per-exam browser tab title/meta description/theme-color
     marketing: {
-      courseUrl, whatsappNumber, whatsappUrl, promoVideo, footerBanner,
+      // courseUrl, promoVideo, footerBanner are REQUIRED — every exam has a
+      // course to promote. WhatsApp is NOT part of this block: it's one
+      // fixed company contact for the whole platform (src/config/brand.js),
+      // not configured per exam.
+      courseUrl, promoVideo, footerBanner,
       copy: { footerAriaLabel, footerBannerAlt, footerBannerAriaLabel,
               courseFooterText, helpLinkText, popupAriaLabel },
     },
@@ -101,11 +106,15 @@ it. That's the whole registration — there's no separate exam registry/router.
    template; the shape of `questions.js` (normalize raw JSON -> namespaced
    IDs -> attach `generalCategory`/`mathLayout`) rarely needs to change.
 2. Fill in `exam.config.js`: sections (with their tests, and `mathRendering`
-   per section if the exam has math-style questions), timer minutes,
-   marketing links/copy, lead capture fields, and — if the exam has a real
-   category taxonomy — category mapping plus `performance: { byCategory: true }`.
+   per section if the exam has math-style questions), timer minutes, `meta`
+   (title/description/themeColor), marketing links/copy (`courseUrl`,
+   `promoVideo`, `footerBanner` are required — every exam has a course to
+   promote), lead capture fields, and — if the exam has a real category
+   taxonomy — category mapping plus `performance: { byCategory: true }`.
    If not, set `performance: { byCategory: false }` (or omit it) and skip
    `categories` entirely; see "Category-based performance reporting" below.
+   Do **not** add a WhatsApp field here — WhatsApp is one fixed company
+   contact for the whole platform, in `src/config/brand.js`.
 3. Drop the exam's question datasets under `src/exams/<id>/data/`, in
    whatever shape `questions.js` expects (see the question schema notes at
    the top of `src/exams/gat/questions.js`).
@@ -114,10 +123,13 @@ it. That's the whole registration — there's no separate exam registry/router.
    `public/assets/marketing/...` paths so they don't collide with GAT's.
 5. Change the one line in `src/exams/active.js` to point at the new exam's
    `index.js`.
-6. Update `index.html`'s `<title>`/meta description/`theme-color` by hand —
-   these are static HTML with no build-time templating today, so they're not
-   part of the exam-config system. (Noted as a possible follow-up, not done
-   as part of this refactor to avoid unrelated scope.)
+6. `index.html`'s `<title>`/meta description/`theme-color` are static HTML
+   with no build-time templating, but `App.jsx` overwrites them at startup
+   from the active exam's `config.meta` (title/description/themeColor), the
+   same way it sets `document.documentElement.lang`/`dir` from `locale` —
+   so setting `meta` in `exam.config.js` is enough; `index.html` itself only
+   needs manual edits for the *default* (pre-JS) values a crawler or a
+   pre-hydration flash would see.
 
 No file in `components/`, `lib/`, or `App.jsx` should need to change for a
 new exam. If one does, that's a sign of an exam assumption that leaked into
@@ -207,11 +219,30 @@ that omits `performance` entirely is treated as `false`, not a crash.
   deadline length) and `timer.defaultOn` (whether the timer toggle starts on
   or off on the Section Select screen). There's no per-question timer
   concept in the platform today.
-- **Marketing**: `exam.config.js`'s `marketing` block — URLs, promo assets,
-  and the `copy` sub-object for any UI string that names the exam/course
-  (footer aria-labels, alt text, help-link text). Company branding (Leen
-  logo/name) is separate, in `src/config/brand.js`, since it doesn't change
-  per exam.
+- **Marketing**: `exam.config.js`'s `marketing` block — `courseUrl`,
+  `promoVideo`, and `footerBanner` are **required** per exam (every exam has
+  a course to promote), plus the `copy` sub-object for any UI string that
+  names the exam/course (footer aria-labels, alt text, help-link text).
+  Company branding (Leen logo/name) and the **WhatsApp contact** are
+  separate, in `src/config/brand.js` (`WHATSAPP_NUMBER`/`WHATSAPP_URL`),
+  since neither changes per exam — there is one WhatsApp number for the
+  whole platform, not one per exam. `App.jsx`'s floating WhatsApp button and
+  `Results.jsx`'s "contact WhatsApp" link both import it from there, never
+  from an exam's `marketing` block.
+- **Runtime metadata**: `exam.config.js`'s `meta` block (`title`,
+  `description`, `themeColor`) — applied to `document.title` and the
+  `<meta name="description">`/`<meta name="theme-color">` tags at startup in
+  `App.jsx`, the same way `locale` sets `documentElement.lang`/`dir`. This is
+  how a new exam's browser-tab title/description/theme-color take effect
+  without per-exam build-time HTML templating.
+- **Section icons**: `src/components/icons.jsx`'s `SECTION_ICONS` registry
+  (a curated set of lucide-react icons — calculator, bookOpen, flaskConical,
+  atom, languages, penTool, globe, brain, ruler, graduationCap, layers,
+  fileText, scrollText, landmark, microscope) plus `getSectionIcon(iconKey)`,
+  which both `Home.jsx` and `SectionSelect.jsx` call to resolve a section's
+  `icon` string, falling back to a neutral `LayoutGrid` icon if the key is
+  missing or unrecognized. Add new icons to this one registry (not per-exam
+  code) if a future exam needs a subject icon that isn't listed yet.
 
 ## What must never be duplicated or modified when adding an exam
 
@@ -227,6 +258,10 @@ that omits `performance` entirely is treated as `false`, not a crash.
   visits two exam deployments sharing an origin.
 - Don't edit an existing exam's question JSON content (text, answers, order,
   categories, passages, image paths) as part of adding a *different* exam.
+- Don't add a WhatsApp number/URL field to a new exam's `marketing` block —
+  WhatsApp is one fixed platform-wide contact in `src/config/brand.js`;
+  changing it (a rare, deliberate business decision) means editing that one
+  constant, not adding a per-exam override.
 - Don't fork `src/i18n/en.js`/`ar.js` per exam — they're shared platform
   dictionaries. An exam only sets `locale.language` to pick one; if a string
   is genuinely wrong for one exam, that's a sign it's exam-specific copy that

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Header, Footer, MainLogo } from "./Home.jsx";
 import { Sound } from "../lib/sound.js";
-import { Calculator, Check, SECTION_ICONS } from "./icons.jsx";
+import { Check, getSectionIcon } from "./icons.jsx";
 import activeExam from "../exams/active.js";
 import { t } from "../i18n/index.js";
 
 export default function SectionSelect({ section, dark, onToggleDark, soundOn, onToggleSound, onHome, onStart }) {
   const sectionConfig = activeExam.config.sections.find((s) => s.id === section);
   const items = sectionConfig?.tests || [];
-  const TileIcon = SECTION_ICONS[sectionConfig?.icon] || Calculator;
+  const TileIcon = getSectionIcon(sectionConfig?.icon);
   const { minutes: timerMinutes, defaultOn: timedDefault } = activeExam.config.timer;
   const [picked, setPicked] = useState(null);
   const [timed, setTimed] = useState(timedDefault);

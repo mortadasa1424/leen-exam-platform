@@ -12,20 +12,36 @@ import { locale, t } from "./i18n/index.js";
 import { Sound } from "./lib/sound.js";
 import { getStr, setStr, getJSON, setJSON, remove, getSessionStr, setSessionStr } from "./lib/storage.js";
 import { storageKey } from "./lib/storageKeys.js";
+import { WHATSAPP_URL } from "./config/brand.js";
 import { FaWhatsapp } from "react-icons/fa";
 import "./styles/app.css";
 
 const { getTestQuestions, getQuestionsByIds, testMeta: TEST_META } = activeExam;
 const { minutes: DEFAULT_TEST_MINUTES } = activeExam.config.timer;
-const { whatsappUrl: WHATSAPP_URL } = activeExam.config.marketing;
 const { enabled: LEAD_CAPTURE_ENABLED } = activeExam.config.leadCapture;
 
 // Platform UI language/direction — set once at startup, before first paint,
 // so there's no LTR->RTL flash. Independent from question-content direction,
 // which QuestionCard derives per-question from its own text.
+//
+// Per-exam runtime metadata (document title, meta description, theme-color)
+// is applied the same way, from the active exam's `config.meta` — index.html
+// has no build-time per-exam templating, so this is the one place a new
+// exam's browser-tab title/description/theme-color take effect.
 if (typeof document !== "undefined") {
   document.documentElement.lang = locale.language;
   document.documentElement.dir = locale.direction;
+
+  const meta = activeExam.config.meta || {};
+  if (meta.title) document.title = meta.title;
+  if (meta.description) {
+    const descTag = document.querySelector('meta[name="description"]');
+    if (descTag) descTag.setAttribute("content", meta.description);
+  }
+  if (meta.themeColor) {
+    const themeTag = document.querySelector('meta[name="theme-color"]');
+    if (themeTag) themeTag.setAttribute("content", meta.themeColor);
+  }
 }
 
 const LS = {

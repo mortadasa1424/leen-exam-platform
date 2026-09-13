@@ -4,12 +4,13 @@ import { scoreAttempt } from "../lib/scoring.js";
 import activeExam from "../exams/active.js";
 import { Sound } from "../lib/sound.js";
 import { t } from "../i18n/index.js";
+import { WHATSAPP_URL } from "../config/brand.js";
 import { BarChart3, Eye, RotateCcw, MessageCircle, ChevronDown } from "./icons.jsx";
 
 const RC = 2 * Math.PI * 74;
 
 export default function Results({ attempt, dark, onToggleDark, soundOn, onToggleSound, onHome, onReport, onReview, onPracticeMistakes }) {
-  const { courseUrl, whatsappUrl, copy } = activeExam.config.marketing;
+  const { courseUrl, copy } = activeExam.config.marketing;
   const byCategory = Boolean(activeExam.config.performance?.byCategory);
   const currentAttempt = useMemo(() => ({
     ...attempt,
@@ -96,7 +97,7 @@ export default function Results({ attempt, dark, onToggleDark, soundOn, onToggle
               {help && (
                 <div className="expander-body help-body">
                   <a className="help-link" href={courseUrl} target="_blank" rel="noopener noreferrer">{copy.helpLinkText}</a>
-                  <a className="help-link wa-action" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                  <a className="help-link wa-action" href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
                     <MessageCircle size={16} aria-hidden="true" /> {t("results.contactWhatsapp")}
                   </a>
                 </div>

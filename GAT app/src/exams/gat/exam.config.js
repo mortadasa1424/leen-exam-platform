@@ -9,13 +9,22 @@ import { GENERAL_CATEGORIES, SPECIFIC_TO_GENERAL } from "./categories.js";
 
 const COURSE_URL_BASE = "https://leen.sa/courses/gat-qudrat";
 const UTM_PARAMS = "utm_source=APP&utm_medium=Exam&utm_campaign=GAT26";
-const WHATSAPP_NUMBER = "966557841489";
 
 export default {
   id: "gat",
   name: "GAT",
   shortName: "GAT",
   description: "Free GAT Exam Practice — Quantitative and Verbal practice tests, built to mirror the real GAT exam.",
+
+  // Per-exam runtime metadata — document title, meta description, and
+  // theme-color, applied at startup in App.jsx since index.html has no
+  // build-time per-exam templating. Mirrors index.html's own static values
+  // so GAT's behavior/appearance is unchanged.
+  meta: {
+    title: "Leen GAT Practice App",
+    description: "Leen's free practice app for the GAT exam",
+    themeColor: "#100a2b",
+  },
 
   // Prefixes every localStorage/sessionStorage key this exam uses (see
   // src/lib/storageKeys.js). Unchanged from the app's original hardcoded
@@ -97,10 +106,10 @@ export default {
     heroLede: "Quantitative and Verbal practice tests, built to mirror the real GAT exam.",
   },
 
+  // WhatsApp is fixed at the company/brand level (src/config/brand.js), not
+  // configured per exam — see that file's WHATSAPP_URL.
   marketing: {
     courseUrl: `${COURSE_URL_BASE}?${UTM_PARAMS}`,
-    whatsappNumber: WHATSAPP_NUMBER,
-    whatsappUrl: `https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&text&type=phone_number&app_absent=0`,
     promoVideo: "/assets/marketing/vid.mp4",
     footerBanner: "/assets/marketing/gat-course-banner2.png",
     // UI copy that names the exam/course — kept here (not hardcoded in
