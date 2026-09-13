@@ -1,19 +1,24 @@
 ---
 name: create-exam
-description: Scaffold a new exam module (src/exams/<exam-id>/) for this repo's reusable exam platform, without touching the generic engine (App.jsx, components/, lib/, styles) or any other exam's files. Use when the user runs /create-exam, or asks to add/create a new exam (e.g. SAAT, STEP) on top of this platform. Does not import real questions (that's /ingest-questions), registers the new exam in src/exams/registry.js, but never sets any deployment's VITE_EXAM_ID (that's a separate, explicit deploy-time decision, never automatic).
+description: Scaffold a new exam's complete filesystem structure for this repo's reusable exam platform — the runtime module (src/exams/<exam-id>/), source-document folders (tests-source/<exam-id>/), question-asset namespace (public/questions/<exam-id>/), and marketing-asset folder (public/assets/marketing/<exam-id>/) — without touching the generic engine (App.jsx, components/, lib/, styles) or any other exam's files. Use when the user runs /create-exam, or asks to add/create a new exam (e.g. SAAT, STEP) on top of this platform. Does not import real questions (that's /ingest-questions), registers the new exam in src/exams/registry.js, but never sets any deployment's VITE_EXAM_ID (that's a separate, explicit deploy-time decision, never automatic).
 ---
 
 # create-exam
 
-Scaffold a new exam module that plugs into this repo's reusable exam
-platform (see `docs/PLATFORM.md`). This Skill creates config/data/module
-files and registers the new exam in `src/exams/registry.js` — it never
-touches the generic engine, never edits another exam's files, and never
-sets any deployment's `VITE_EXAM_ID` (registering an exam makes it
-*available*; a deployment's own `VITE_EXAM_ID` is what makes an exam
-*live*, and that's always a separate, explicit decision for whoever owns
-that deployment — this Skill never makes it, even if asked, though it can
-tell the user how to set it themselves for local dev or on Netlify).
+Scaffold the **complete standard filesystem structure** a new exam needs on
+this repo's reusable exam platform (see `docs/PLATFORM.md`) — not just the
+`src/exams/` runtime module, but every surrounding folder the platform's own
+conventions expect: source-document folders under `tests-source/`, a
+question-asset namespace under `public/questions/`, and a marketing-asset
+folder under `public/assets/marketing/`. This Skill creates config/data/
+module files, prepares those three sibling directory trees, and registers
+the new exam in `src/exams/registry.js` — it never touches the generic
+engine, never edits another exam's files, and never sets any deployment's
+`VITE_EXAM_ID` (registering an exam makes it *available*; a deployment's own
+`VITE_EXAM_ID` is what makes an exam *live*, and that's always a separate,
+explicit decision for whoever owns that deployment — this Skill never makes
+it, even if asked, though it can tell the user how to set it themselves for
+local dev or on Netlify).
 
 ## Before doing anything
 
@@ -25,9 +30,21 @@ tell the user how to set it themselves for local dev or on Netlify).
    trusting the doc.** Do not invent a different architecture.
 2. Run `git status`. If it's not clean, tell the user what's pending before
    you start creating files (don't stash/discard anything yourself).
-3. Check whether `src/exams/<candidate-id>/` already exists. If it does,
-   **stop and ask the user to confirm** before writing anything into it —
-   never silently overwrite an existing exam module.
+3. This Skill creates files/folders under four separate roots for the same
+   `<candidate-id>` (see `references/exam-module-contract.md`'s "Full
+   filesystem structure this Skill creates" for the complete picture).
+   Before writing anything, check whether **any** of these already exist:
+   - `src/exams/<candidate-id>/`
+   - `tests-source/<candidate-id>/`
+   - `public/questions/<candidate-id>/`
+   - `public/assets/marketing/<candidate-id>/`
+
+   If any of them exist, **stop and explain the collision to the user** —
+   name exactly which path(s) already exist and, briefly, what's in them —
+   and ask how to proceed before writing anything. Never silently overwrite
+   or merge into an existing exam's files, even if only one of the four
+   roots collides (e.g. `public/assets/marketing/<id>/` exists from a prior
+   partial attempt but `src/exams/<id>/` doesn't).
 
 ## Step 1 — Collect exam details
 
@@ -46,12 +63,16 @@ Ask for (or use what the user already supplied in their invocation):
 - Timer duration (minutes) and whether it defaults on or off.
 - Whether category-based performance reporting is enabled
   (`performance.byCategory`).
-- Marketing: **course URL, promo video path, and footer/banner image path
-  are all required** — every exam on this platform promotes a real course.
-  Do not default or fabricate these; if the user doesn't have final assets
-  yet, ask them for at least a working placeholder path/URL they intend to
-  swap in, and note it clearly in the final report rather than silently
-  writing `null`/`""`.
+- Marketing: **course URL, promo video filename, and footer/banner image
+  filename are all required** — every exam on this platform promotes a real
+  course. Ask for the actual filenames the user intends to use (e.g.
+  `promo.mp4`, `course-banner.png`) — this Skill builds the config paths
+  from them as `/assets/marketing/<exam-id>/<filename>` (see Step 2), it
+  does not ask for a full path. If the user doesn't have final files yet,
+  ask them for the filenames they intend to swap in later and note clearly
+  in the final report that the files themselves are still pending — never
+  write `null`/`""`, and never fabricate an empty media file to fill the
+  gap.
 - Runtime metadata: `meta.title`, `meta.description`, `meta.themeColor`
   (browser tab title, meta description, theme-color) — these become real
   once the exam is activated, so ask for actual values, not placeholders.
@@ -104,9 +125,15 @@ inventing categories that don't correspond to anything real.
   `courseUrl`/`promoVideo`/`footerBanner` themselves this way; those are
   required inputs, not derivable copy.
 
-## Step 2 — Scaffold the module
+## Step 2 — Scaffold the module and its surrounding filesystem structure
 
-Create, under `src/exams/<exam-id>/`:
+This Skill prepares the **complete** standard structure the platform expects
+for a new exam, not just the `src/exams/` module — see
+`references/exam-module-contract.md`'s "Full filesystem structure this Skill
+creates" for the authoritative picture. Four roots, all keyed by the same
+`<exam-id>`:
+
+### 2a. `src/exams/<exam-id>/` — the runtime module
 
 - `exam.config.js` — per the contract doc's shape, filled with the
   collected values. `storagePrefix: "leen_<exam-id>"`.
@@ -114,8 +141,11 @@ Create, under `src/exams/<exam-id>/`:
   do not create this file, and do not add a `categories` key to
   `exam.config.js` at all.
 - `data/<section-id>/<test-key>.json` — one file per test, containing `[]`
-  (empty placeholder array). Do not fabricate sample questions. If the
-  exam has RC/passage-style sections, still only create empty
+  (empty placeholder array). Do not fabricate sample questions. Use the
+  section's real `id` verbatim as the folder name (e.g. `data/quantitative/`)
+  — do not abbreviate it; GAT's own `data/quant/` predates this convention
+  and is a known inconsistency, not a pattern to copy (see the contract
+  doc). If the exam has RC/passage-style sections, still only create empty
   `data/<section-id>/passages-<n>.json` files if the user specifically
   describes a passage structure; otherwise skip passages entirely.
 - `questions.js` — following the GAT pattern from the contract doc,
@@ -125,15 +155,51 @@ Create, under `src/exams/<exam-id>/`:
 Use `src/exams/gat/` purely as a structural reference. Never edit any file
 under `src/exams/gat/` while doing this.
 
-Use the marketing paths as given (paths under `public/assets/marketing/...`
-and `public/questions/<exam-id>/...`) — do not copy GAT's actual asset files
-(promo video, banner image) into the new exam's paths, and do not copy
-GAT's webhook URL, course URL, or marketing copy into the new exam's
-config. If the user hasn't actually placed the promo video/banner file on
-disk yet, still write the intended path into `exam.config.js` (that's the
-required config value) and tell them the file itself still needs to be
-added under `public/assets/marketing/` before the popup/footer will render
-correctly — don't silently substitute GAT's asset file.
+### 2b. `tests-source/<exam-id>/<section-id>/` — source-document folders
+
+Create one folder per section (not per test — GAT keeps all of a section's
+`.docx` files flat in one folder, e.g. `tests-source/gat/quantitative/`
+holds all three tests). These start empty; the user places real `.docx`
+files here later, via `/ingest-questions`. **Do not create fake/placeholder
+`.docx` files.**
+
+Since each folder is empty, drop a bare `.gitkeep` inside it so Git tracks
+the directory (Git does not track empty folders — see "Empty directories
+and Git" in the contract doc for this Skill's `.gitkeep` strategy in full).
+
+Optionally add one `tests-source/<exam-id>/README.md` (not per-section) —
+only if it adds real information — noting this tree is source/provenance
+only and isn't read by the running app. See the contract doc for suggested
+wording. Skip it if it doesn't seem useful; prefer keeping the tree clean.
+
+### 2c. `public/questions/<exam-id>/` — question-asset namespace
+
+Create **only** this one top-level directory (with a `.gitkeep`, since it
+starts empty). Do **not** pre-create `<section-id>/<test-key>/` subfolders
+under it — `/ingest-questions`'s `docx-extract-media.ps1` already creates
+those on demand (`New-Item -Force`) exactly when it extracts real media, and
+plenty of tests never need one at all (GAT's own `verbal` tests have zero
+images and no folder). Pre-creating them here would just be clutter that
+may never get used. **Do not add placeholder images.**
+
+### 2d. `public/assets/marketing/<exam-id>/` — marketing assets
+
+Create this directory (with a `.gitkeep`, since it starts empty). This is
+namespaced per exam on purpose — a deliberate departure from GAT's own flat,
+pre-refactor layout (`public/assets/marketing/vid.mp4`,
+`.../gat-course-banner2.png`, no `gat/` segment) — see the contract doc for
+why. **Do not copy GAT's actual promo video/banner files into it.**
+
+Write `exam.config.js`'s `marketing.promoVideo` and `marketing.footerBanner`
+as `/assets/marketing/<exam-id>/<filename>`, using the filenames collected
+in Step 1 — that's the required config value even if the real files aren't
+on disk yet. **Do not fabricate empty/placeholder media files** to fill the
+directory. Clearly tell the user, in the final report, that the directory
+was created but the real video/banner files still need to be added there
+before the popup/footer will render correctly.
+
+Do not copy GAT's webhook URL, course URL, or marketing copy into the new
+exam's config, regardless of any of the above.
 
 ## Step 3 — Register, but do not activate
 
@@ -191,6 +257,13 @@ Without changing any deployment's active exam:
    - If `performance.byCategory` is `true`, `categories.js` exists and
      `exam.config.js` references it; if `false`, confirm no `categories`
      key exists and no `categories.js` file was created.
+   - The surrounding filesystem structure from Step 2 exists:
+     `tests-source/<exam-id>/<section-id>/` for every section (each with a
+     `.gitkeep`), `public/questions/<exam-id>/.gitkeep`, and
+     `public/assets/marketing/<exam-id>/.gitkeep`.
+   - `marketing.promoVideo`/`footerBanner` in `exam.config.js` point at
+     `/assets/marketing/<exam-id>/<filename>` (not GAT's paths, not a bare
+     filename with no directory).
 3. Run `npm run build` (from the `leen-exam-platform` directory), with
    `VITE_EXAM_ID=<exam-id>` set as above, and report the result.
 4. Report any validation failures plainly; don't paper over them.
@@ -198,15 +271,29 @@ Without changing any deployment's active exam:
 ## Step 5 — Report
 
 At the end, report:
-- Exam ID/name created, and the exact file list created.
+- Exam ID/name created, and the exact file list created (across all four
+  roots — `src/exams/<exam-id>/`, `tests-source/<exam-id>/`,
+  `public/questions/<exam-id>/`, `public/assets/marketing/<exam-id>/` — not
+  just the module).
+- Collision check result: which of the four roots were checked, and
+  confirmation none pre-existed (or, if the user chose to proceed despite a
+  collision, exactly what that decision was).
 - Sections and tests (with keys).
 - Locale/direction.
 - Timer (minutes, default on/off).
 - Category performance: enabled/disabled, and whether a real taxonomy was
   supplied or left sparse/placeholder.
-- Marketing configuration status: `courseUrl`/`promoVideo`/`footerBanner`
-  values set, and whether the actual video/banner files still need to be
-  added under `public/assets/marketing/`. Note that WhatsApp uses the
+- Filesystem structure prepared: `tests-source/<exam-id>/<section-id>/`
+  folders created (one per section, each with a `.gitkeep`, awaiting real
+  `.docx` files), `public/questions/<exam-id>/` namespace directory created
+  (empty, subfolders left to `/ingest-questions`), and whether a
+  `tests-source/<exam-id>/README.md` was added.
+- Marketing configuration status: `courseUrl` value set;
+  `promoVideo`/`footerBanner` config paths set to
+  `/assets/marketing/<exam-id>/<filename>`; the
+  `public/assets/marketing/<exam-id>/` directory was created but state
+  plainly that **the real video/banner files still need to be added there**
+  before the popup/footer will render correctly. Note that WhatsApp uses the
   platform-wide contact from `src/config/brand.js` and was not configured
   per exam.
 - Runtime metadata (`meta.title`/`description`/`themeColor`) configured.

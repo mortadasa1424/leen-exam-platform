@@ -21,9 +21,117 @@ src/exams/<exam-id>/
     <section-id>/passages-<n>.json    only for passage/RC-style sections
 ```
 
-`exam-id` must be a lowercase, filesystem- and JS-identifier-safe slug
-(matches `src/exams/gat` naming: short, lowercase, no spaces — e.g. `saat`,
-`step`).
+`exam-id` must be a lowercase, filesystem-safe slug, no spaces (e.g. `saat`,
+`step`, `scaffold-test`). It does **not** need to be a bare JS identifier —
+a hyphenated id like `scaffold-test` is fine as a folder name, `config.id`
+string, and registry object key (`"scaffold-test": scaffoldTest,` — quote
+the key). Only the *local variable* bound to its import needs to be a valid
+identifier, and that's independent of the folder name:
+`import scaffoldTest from "./scaffold-test/index.js";` — camelCase the
+import name however reads best, it never has to match the folder/id string.
+
+**Use the real section id for `data/<section-id>/`, exactly as spelled in
+`exam.config.js`'s `sections[].id`** (e.g. `data/quantitative/`, not an
+abbreviation). GAT's own `data/quant/` and `data/verbal/` folders are a
+historical artifact — `quant` predates the exam-id namespacing refactor and
+doesn't actually match GAT's own section id (`quantitative`). Don't replicate
+that mismatch in a new exam; it costs nothing to keep `data/`'s folder names
+identical to `sections[].id`, and it's one less thing to keep in sync by hand
+in `questions.js`'s import list.
+
+## Full filesystem structure this Skill creates
+
+Scaffolding a new exam touches four separate roots, all keyed by the same
+`<exam-id>`, plus the registry file. Every path below is created (or, for
+`tests-source` READMEs, optionally created) by `/create-exam` — see
+`SKILL.md` Step 2 for exactly when each one is written.
+
+```
+src/exams/<exam-id>/                              runtime module + question data (this section, above)
+tests-source/<exam-id>/<section-id>/              empty — user drops source .docx here later
+tests-source/<exam-id>/README.md                  optional — provenance note, see below
+public/questions/<exam-id>/                        empty namespace dir — /ingest-questions creates
+                                                    <section-id>/<test-key>/ subfolders on demand
+                                                    (docx-extract-media.ps1 does `mkdir -Force`)
+public/assets/marketing/<exam-id>/                 empty — user drops the real promo video / banner here
+```
+
+**Path conventions (exceptionless — every exam, GAT included, follows these):**
+
+- Source documents: `tests-source/<exam-id>/<section-id>/...`
+- Runtime question data: `src/exams/<exam-id>/data/<section-id>/<test-key>.json`
+- Runtime question assets: `public/questions/<exam-id>/<section-id>/<test-key>/...`
+- Marketing assets: `public/assets/marketing/<exam-id>/...`
+
+**Marketing path is namespaced per exam — this is a departure from GAT's own
+layout, on purpose.** GAT's actual promo files sit flat at
+`public/assets/marketing/vid.mp4` and
+`public/assets/marketing/gat-course-banner2.png` (no `gat/` segment), because
+they predate the multi-exam refactor. `docs/PLATFORM.md`'s own guidance
+already says a new exam "should use its own ... `public/assets/marketing/...`
+paths so they don't collide with GAT's" — this Skill makes that concrete by
+always scaffolding `public/assets/marketing/<exam-id>/` for anything new,
+the same namespacing GAT's question images were later migrated to
+(`public/questions/gat/...`, per `question-schema.md`'s "Asset path
+convention"). Do not move or rename GAT's existing flat marketing files to
+match; they stay exactly where they are.
+
+**Don't pre-create `public/questions/<exam-id>/<section-id>/<test-key>/`
+subfolders.** GAT itself proves why: its `verbal` tests have zero images and
+correspondingly no `public/questions/gat/verbal/` folder at all — only
+`quantitative` has one, because that's the only section that ever needed
+one. `scripts/docx-extract-media.ps1` already creates its output directory
+with `-Force` the moment `/ingest-questions` actually extracts media, so a
+pre-created empty folder for a test that never gets images is pure clutter.
+Create only the top-level `public/questions/<exam-id>/` namespace directory;
+leave every subfolder to `/ingest-questions`.
+
+**Do pre-create one `tests-source/<exam-id>/<section-id>/` folder per
+section.** Unlike `public/questions/`, nothing else ever creates these —
+they're pure human filing destinations for source `.docx` files the user
+hasn't supplied yet, and every section will eventually need one (a section
+with zero source documents isn't a real section). Do not create per-test
+subfolders here — GAT's own `tests-source/gat/quantitative/` holds all three
+tests' `.docx` files flat (`quantitative-1.docx`, `quantitative-2.docx`,
+`quantitative-3.docx`), not one subfolder per test.
+
+### Empty directories and Git
+
+Git does not track empty directories. This repo has no existing `.gitkeep`
+convention (grepped for one; none exists), so this Skill introduces the
+minimal version of it:
+
+- Drop a bare `.gitkeep` file **only** inside directories that (a) must
+  exist in the repo before real content is ever added, and (b) have nothing
+  else being written into them by this Skill: each
+  `tests-source/<exam-id>/<section-id>/` folder, and
+  `public/assets/marketing/<exam-id>/` (empty until the user supplies the
+  real video/banner). `public/questions/<exam-id>/` also gets one, since it
+  is intentionally left with no subfolders (see above).
+- Never add a `.gitkeep` to `src/exams/<exam-id>/data/<section-id>/` —
+  those directories are never empty; they always contain at least the `[]`
+  placeholder JSON files created in the same step.
+- When the user later adds a real file into a `.gitkeep`-only directory
+  (a `.docx`, a promo video), the `.gitkeep` can be deleted at that point
+  (optional cleanup, not required — an orphaned `.gitkeep` alongside real
+  files is harmless clutter, not a bug).
+
+### `tests-source/<exam-id>/README.md` (optional)
+
+Create this only if it adds real information beyond what the path itself
+already says — a couple of lines is enough:
+
+```markdown
+# <Exam Name> — source documents
+
+Original `.docx` source files for <Exam Name>, organized by section. This
+directory is provenance only — nothing here is read by the running app.
+Extracted question data lives in `src/exams/<exam-id>/data/`; extracted
+images live in `public/questions/<exam-id>/`. See `/ingest-questions`.
+```
+
+Skip it if the user doesn't want it; it's not load-bearing for the platform
+contract.
 
 ## `exam.config.js` shape
 

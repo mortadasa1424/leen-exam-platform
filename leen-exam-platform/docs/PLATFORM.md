@@ -203,13 +203,24 @@ untouched. Registering an exam does **not** make it active anywhere; a
 deployment only serves it once that deployment's own `VITE_EXAM_ID` is set
 to its id.
 
-## Adding a future exam manually
+## Adding a future exam
+
+`/create-exam` (a Claude Code Skill — `.claude/skills/create-exam/`)
+automates all of the steps below: it scaffolds the runtime module, the
+question-asset namespace, the source-document folders, and the marketing
+folder in one pass, and registers the exam. What follows is what it does,
+for anyone adding an exam by hand or auditing its output.
 
 1. Create `src/exams/<id>/` with `exam.config.js`, `categories.js` (if the
    exam has category-based reporting), `questions.js`, `index.js`, and a
-   `data/` folder for its question JSON — copy GAT's files as a starting
-   template; the shape of `questions.js` (normalize raw JSON -> namespaced
-   IDs -> attach `generalCategory`/`mathLayout`) rarely needs to change.
+   `data/<section-id>/` folder per section for its question JSON (`[]`
+   placeholders until `/ingest-questions` runs) — copy GAT's files as a
+   starting template; the shape of `questions.js` (normalize raw JSON ->
+   namespaced IDs -> attach `generalCategory`/`mathLayout`) rarely needs to
+   change. Use each section's real `id` verbatim as its `data/` folder name
+   — GAT's own `data/quant/`/`data/verbal/` predate this convention and
+   don't match GAT's actual section ids (`quantitative`/`verbal`); that
+   mismatch is a historical artifact, not something to replicate.
 2. Fill in `exam.config.js`: sections (with their tests, and `mathRendering`
    per section if the exam has math-style questions), timer minutes, `meta`
    (title/description/themeColor), marketing links/copy (`courseUrl`,
@@ -222,10 +233,19 @@ to its id.
    contact for the whole platform, in `src/config/brand.js`.
 3. Drop the exam's question datasets under `src/exams/<id>/data/`, in
    whatever shape `questions.js` expects (see the question schema notes at
-   the top of `src/exams/gat/questions.js`).
-4. Point brand-only assets (course promo video/banner, question images) under
-   `public/` — a new exam should use its own `public/questions/<id>/...` and
-   `public/assets/marketing/...` paths so they don't collide with GAT's.
+   the top of `src/exams/gat/questions.js`). Their original source `.docx`
+   files live separately, under `tests-source/<id>/<section-id>/` (one
+   folder per section, files flat inside it — see GAT's own
+   `tests-source/gat/quantitative/`) — this tree is provenance only, never
+   read by the running app.
+4. Point brand-only assets under `public/`, each in its own exam-id
+   namespace so nothing collides across exams: question images at
+   `public/questions/<id>/<section-id>/<test-key>/...` (created on demand by
+   `/ingest-questions`, not pre-built), and the course promo video/banner at
+   `public/assets/marketing/<id>/...`. GAT's own promo files still sit flat
+   at `public/assets/marketing/vid.mp4`/`gat-course-banner2.png` (no `gat/`
+   segment) as a pre-refactor artifact — a new exam should use the namespaced
+   form, not match GAT's flat layout.
 5. Register it in `src/exams/registry.js` (see "Adding a new exam to the
    registry" above). Do **not** edit `src/exams/active.js` — it needs no
    per-exam changes — and do **not** change any deployment's `VITE_EXAM_ID`
@@ -319,9 +339,15 @@ that omits `performance` entirely is treated as `false`, not a crash.
 - **Questions**: `src/exams/<id>/data/`. Treat as read-only content —
   `questions.js` is the only place that shapes it (namespacing IDs,
   attaching `generalCategory`/`mathLayout`).
-- **Assets**: `public/` — images/SVGs referenced by question JSON, brand
-  logos (`public/assets/brand/`, shared across exams), and each exam's own
-  marketing assets (`public/assets/marketing/`, promo video/banner).
+- **Assets**: `public/` — question images/SVGs at
+  `public/questions/<id>/<section-id>/<test-key>/...` (namespaced per exam
+  since `/ingest-questions`'s "Asset path convention" migrated GAT's own
+  images to `public/questions/gat/...`), brand logos (`public/assets/brand/`,
+  shared across exams), and each exam's own marketing assets at
+  `public/assets/marketing/<id>/...` (promo video/banner) — also namespaced
+  per exam, except GAT's own files, which still sit flat at
+  `public/assets/marketing/` as a pre-refactor artifact predating this
+  convention.
 - **Categories**: `src/exams/<id>/categories.js` — `general` is a
   documentation-only list of category names per section; `specificToGeneral`
   is the mapping actually used at question-build time
